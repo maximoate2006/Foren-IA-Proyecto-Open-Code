@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ForanIA — Tu hogar universitario en La Rioja</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="header">
+  <div class="container header-inner">
+    <a href="#" class="logo" data-nav="home">Foran<span>IA</span></a>
+    <nav class="nav" id="nav">
+      <a href="#" data-nav="home" class="nav-link">Inicio</a>
+      <a href="#" data-nav="alquileres" class="nav-link">Alquileres</a>
+      <a href="#" data-nav="fletes" class="nav-link">Fletes</a>
+      <a href="#" data-nav="publicar" class="nav-link">Publicar propiedad</a>
+      <div class="nav-mobile-extra">
+        <button class="btn btn-ghost" data-nav="favoritos"><span class="ico">&#9829;</span> Favoritos</button>
+        <button class="btn btn-primary" data-nav="perfil">Iniciar sesión</button>
+      </div>
+    </nav>
+    <div class="header-actions">
+      <button class="btn btn-ghost icon-btn" data-nav="favoritos" title="Mis favoritos"><span class="ico">&#9829;</span><span class="fav-count" id="favCountTop">0</span></button>
+      <button class="btn btn-primary" data-nav="perfil">Iniciar sesión</button>
+      <button class="hamburger" id="hamburger" aria-label="Menú"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<!-- ============ MAIN ============ -->
+<main>
+
+  <!-- ===== HOME ===== -->
+  <section id="home" class="page active">
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          <span class="badge">&#127979; Vivienda estudiantil · La Rioja</span>
+          <h1>Encontrá tu próximo <span class="grad">hogar universitario</span> en La Rioja</h1>
+          <p>Buscá alquileres cerca de tu universidad y encontrá todo lo que necesitás para mudarte en un solo lugar.</p>
+          <form class="search-bar" id="heroSearch">
+            <label>Universidad
+              <select id="searchUni">
+                <option>UNLaR</option>
+                <option>UTN</option>
+                <option>Cualquiera</option>
+              </select>
+            </label>
+            <label>Presupuesto
+              <select id="searchBudget">
+                <option value="0">Cualquiera</option>
+                <option value="200000">Hasta $200.000</option>
+                <option value="350000">Hasta $350.000</option>
+                <option value="500000">Hasta $500.000</option>
+              </select>
+            </label>
+            <label>Tipo de alojamiento
+              <select id="searchType">
+                <option value="">Cualquiera</option>
+                <option value="departamento">Departamento</option>
+                <option value="habitacion">Habitación</option>
+                <option value="casa">Casa</option>
+              </select>
+            </label>
+            <button type="submit" class="btn btn-primary btn-lg">Buscar alojamiento</button>
+          </form>
+        </div>
+        <div class="hero-stats">
+          <div><strong>120+</strong><span>Alojamientos</span></div>
+          <div><strong>4.8★</strong><span>Puntuación</span></div>
+          <div><strong>15+</strong><span>Universidades</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="container section">
+      <h2 class="section-title">¿Qué estás buscando?</h2>
+      <div class="grid-3">
+        <div class="card cat-card" data-nav="alquileres">
+          <div class="cat-icon">&#127968;</div>
+          <h3>Alojamiento</h3>
+          <p>Encontrá departamentos y habitaciones cerca de tu universidad.</p>
+          <span class="cat-link">Explorar &rarr;</span>
+        </div>
+        <div class="card cat-card" data-nav="fletes">
+          <div class="cat-icon">&#128666;</div>
+          <h3>Fletes</h3>
+          <p>Encontrá transporte para tu mudanza.</p>
+          <span class="cat-link">Ver fletes &rarr;</span>
+        </div>
+        <div class="card cat-card">
+          <div class="cat-icon">&#128736;</div>
+          <h3>Servicios</h3>
+          <p>Todo lo que necesitás para comenzar tu vida universitaria.</p>
+          <span class="cat-link soon">Próximamente</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="container section">
+      <div class="section-head">
+        <h2 class="section-title">Alquileres destacados</h2>
+        <a href="#" data-nav="alquileres" class="see-all">Ver todos &rarr;</a>
+      </div>
+      <div class="grid-3" id="featuredGrid"></div>
+    </section>
+  </section>
+
+  <!-- ===== ALQUILERES ===== -->
+  <section id="alquileres" class="page">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Encontrá tu próximo alojamiento</h2>
+          <p class="muted" id="resultsCount"></p>
+        </div>
+        <button class="btn btn-ghost" id="toggleMapBtn">Mostrar mapa</button>
+      </div>
+
+      <div class="catalog-layout">
+        <aside class="filters card" id="filtersPanel">
+          <h3>Filtros</h3>
+          <button class="filters-toggle" id="filtersToggle">Filtros <span>&#9660;</span></button>
+          <div class="filters-body">
+            <div class="filter-group">
+              <label>Precio máximo</label>
+              <input type="range" id="fPrice" min="80000" max="600000" step="10000" value="600000">
+              <div class="range-labels"><span>$80.000</span><span id="fPriceLabel">$600.000</span></div>
+            </div>
+            <div class="filter-group">
+              <label>Tipo</label>
+              <select id="fType"><option value="">Todos</option><option>departamento</option><option>habitacion</option><option>casa</option></select>
+            </div>
+            <div class="filter-group">
+              <label>Universidad</label>
+              <select id="fUni"><option value="">Todas</option><option>UNLaR</option><option>UTN</option></select>
+            </div>
+            <div class="filter-group">
+              <label>Distancia máxima</label>
+              <select id="fDist"><option value="99">Cualquiera</option><option value="1">Hasta 1 km</option><option value="2">Hasta 2 km</option><option value="5">Hasta 5 km</option></select>
+            </div>
+            <div class="filter-group checks">
+              <label><input type="checkbox" id="fAmoblado"> Amoblado</label>
+              <label><input type="checkbox" id="fWifi"> WiFi</label>
+              <label><input type="checkbox" id="fCochera"> Cochera</label>
+            </div>
+            <button class="btn btn-primary" id="applyFilters">Aplicar filtros</button>
+            <button class="btn btn-ghost" id="clearFilters">Limpiar filtros</button>
+          </div>
+        </aside>
+
+        <div class="catalog-main">
+          <div class="map card" id="mapSection">
+            <div class="map-grid">
+              <span class="map-label map-uni" title="UNLaR">UNLaR</span>
+              <span class="map-label map-uni2" title="UTN">UTN</span>
+              <div class="map-street-v1"></div><div class="map-street-v2"></div>
+              <div class="map-street-h1"></div><div class="map-street-h2"></div>
+              <div id="mapPins"></div>
+            </div>
+            <div class="map-legend">
+              <span><i class="pin-dot dot-prop"></i> Propiedades</span>
+              <span><i class="pin-dot dot-flete"></i> Fletes</span>
+              <span><i class="pin-dot dot-uni"></i> Universidad</span>
+            </div>
+          </div>
+          <div class="grid-3" id="catalogGrid"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FLETES ===== -->
+  <section id="fletes" class="page">
+    <div class="container section">
+      <h2 class="section-title">Fletes</h2>
+      <p class="muted">Encontrá el transporte que necesitás para tu mudanza.</p>
+      <div class="grid-3" id="fletesGrid"></div>
+    </div>
+  </section>
+
+  <!-- ===== PUBLICAR ===== -->
+  <section id="publicar" class="page">
+    <div class="container section narrow">
+      <h2 class="section-title">Publicá tu propiedad</h2>
+      <p class="muted">Completá los datos y tu propiedad aparecerá en ForanIA.</p>
+      <form class="card form" id="publishForm">
+        <div class="form-row">
+          <label>Título<input type="text" placeholder="Ej: Departamento moderno en Centro" required></label>
+          <label>Precio ($/mes)<input type="number" placeholder="320000" required></label>
+        </div>
+        <div class="form-row">
+          <label>Tipo<select><option>departamento</option><option>habitacion</option><option>casa</option></select></label>
+          <label>Barrio<select><option>Centro</option><option>Zona UNLaR</option><option>San Vicente</option><option>Coquimbito</option><option>Santa Justina</option></select></label>
+        </div>
+        <div class="form-row">
+          <label>Habitaciones<input type="number" min="1" value="1"></label>
+          <label>Baños<input type="number" min="1" value="1"></label>
+        </div>
+        <label>Descripción<textarea rows="3" placeholder="Describí tu propiedad..."></textarea></label>
+        <div class="filter-group checks">
+          <label><input type="checkbox"> WiFi</label>
+          <label><input type="checkbox"> Amoblado</label>
+          <label><input type="checkbox"> Cochera</label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Publicar propiedad</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===== FAVORITOS ===== -->
+  <section id="favoritos" class="page">
+    <div class="container section">
+      <h2 class="section-title">&#9829; Mis favoritos</h2>
+      <p class="muted" id="favMsg"></p>
+      <div class="grid-3" id="favGrid"></div>
+    </div>
+  </section>
+
+  <!-- ===== PERFIL ===== -->
+  <section id="perfil" class="page">
+    <div class="container section narrow">
+      <div class="card profile">
+        <div class="avatar">E</div>
+        <h2>Estudiante</h2>
+        <p class="muted">Estudiante en La Rioja</p>
+        <div class="profile-stats">
+          <div><strong id="profFavs">0</strong><span>Favoritos</span></div>
+          <div><strong id="profComp">0</strong><span>En comparador</span></div>
+          <div><strong id="profSearches">3</strong><span>Búsquedas</span></div>
+        </div>
+        <h3>Búsquedas recientes</h3>
+        <ul class="recent-list">
+          <li>UNLaR · hasta $350.000 · departamento</li>
+          <li>UTN · amoblado</li>
+          <li>Centro · hasta $200.000</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ COMPARADOR (barra flotante) ============ -->
+<div id="compareBar" class="compare-bar">
+  <div class="compare-title"><strong>Comparar</strong> <span id="compareCount">0/3</span></div>
+  <div class="compare-list" id="compareList"></div>
+  <button class="btn btn-primary" id="compareBtn" disabled>Comparar</button>
+</div>
+
+<!-- ============ MODAL DETALLE ============ -->
+<div class="overlay" id="overlay"></div>
+<div class="modal" id="modal">
+  <button class="modal-close" id="modalClose">&times;</button>
+  <div id="modalContent"></div>
+</div>
+
+<!-- ============ MODAL COMPARADOR ============ -->
+<div class="overlay" id="overlay2"></div>
+<div class="modal modal-lg" id="modal2">
+  <button class="modal-close" id="modalClose2">&times;</button>
+  <div id="modalContent2"></div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div class="toast" id="toast"></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
