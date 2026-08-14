@@ -1,1 +1,1 @@
-# MAYYY este es lo que generamos de momento, luego vemos demas funciiones, imagenes, modos de itnregrar IA, logos PERO ALGO TENEMOS JEFA,CUALQUIER EDICION O CONSULTAS QUE TENGA MANDAS UN MENSAJE.
+# MAYYY este es lo que generamos de momento, luego vemos demas funciiones, imagenes, modos de itnregrar IA, logos PERO ALGO TENEMOS JEFA,CUALQUIER EDICION O CONSULTAS QUE TENGA MANDAS UN MENSAJE Y SI TENES UN PROBLEMA AVISA CUALQUIER COSITA
