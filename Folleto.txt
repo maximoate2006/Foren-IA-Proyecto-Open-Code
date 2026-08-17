@@ -1,0 +1,275 @@
+﻿ForanIA
+La Rioja, La Rioja, ARG.
+¿Qué es ForanIA?
+Plataforma inteligente de Alquileres para Estudiantes 
+Visión general del producto
+Cada año, miles de estudiantes deben trasladarse desde sus ciudades de origen hacia distintos puntos del país para comenzar o continuar sus estudios universitarios. Durante este proceso, una de las mayores dificultades consiste en encontrar un alojamiento adecuado que se adapte a sus necesidades, presupuesto y ubicación.
+Actualmente, la información sobre alquileres se encuentra dispersa en múltiples canales como redes sociales, grupos de Facebook, páginas web, inmobiliarias, clasificados y contactos personales. Esta fragmentación obliga a los estudiantes y sus familias a invertir una gran cantidad de tiempo buscando opciones, comparando precios y verificando información, sin la garantía de haber encontrado la mejor alternativa disponible.
+Frente a esta problemática surge ForanIA, una plataforma digital diseñada para centralizar y simplificar la búsqueda de alojamientos estudiantiles.
+Propuestas de Logotipo
+Se han propuesto los siguientes logotipos hechos con Nano Banano de Gemini:  
+
+
+¿Qué es ForanIA?
+ForanIA es una plataforma web orientada a estudiantes foráneos que necesitan encontrar alojamiento cerca de sus centros de estudio.
+Su principal objetivo es reunir en un único lugar la oferta de alquileres disponibles, permitiendo que los usuarios puedan buscar, comparar y contactar propiedades de forma rápida, sencilla y eficiente.
+Para la demostración inicial del proyecto, la plataforma estará enfocada en la ciudad de La Rioja, Argentina, aunque su diseño permite una futura expansión hacia otras provincias y universidades del país.
+Objetivos del Proyecto
+Objetivo general
+Facilitar el acceso a viviendas para estudiantes universitarios mediante una plataforma que centralice la oferta de alquileres y servicios relacionados.
+Objetivos específicos
+* Centralizar la oferta de alquileres estudiantiles.
+* Permitir la comparación rápida entre propiedades.
+* Mostrar la ubicación y cercanía a instituciones educativas.
+* Facilitar el contacto entre estudiantes y proveedores.
+* Incorporar servicios complementarios relacionados con la mudanza..
+* Reducir el tiempo de búsqueda y aumentar la calidad de las decisiones tomadas por los usuarios.
+
+
+
+
+Público Objetivo
+ForanIA está dirigido principalmente a:
+Estudiantes universitarios foráneos
+Personas que deben mudarse de ciudad para cursar sus estudios.
+Familias de estudiantes
+Padres y tutores que participan activamente en la búsqueda de alojamiento.
+Inmobiliarias
+Empresas interesadas en promocionar propiedades destinadas al sector estudiantil.
+Propietarios particulares
+Dueños que desean publicar y gestionar sus alquileres.
+Transportistas y fleteros
+Prestadores de servicios de mudanza que buscan ofrecer sus servicios a estudiantes.
+
+
+Problemáticas que busca resolver
+Actualmente, un estudiante que necesita mudarse para estudiar debe consultar múltiples fuentes de información:
+* Grupos de Facebook.
+* Marketplace.
+* Perfiles de Instagram.
+* Sitios web inmobiliarios.
+* Clasificados digitales.
+* Recomendaciones personales.
+Esto genera diversos inconvenientes:
+* Pérdida de tiempo durante la búsqueda.
+* Información desactualizada o incompleta.
+* Dificultad para comparar opciones.
+* Escasa visibilidad de toda la oferta disponible.
+* Riesgo de tomar decisiones con información limitada.
+* Desconocimiento de las distancias reales entre la vivienda y la universidad.
+Como consecuencia, muchos estudiantes terminan alquilando una propiedad sin conocer alternativas potencialmente más convenientes en precio, ubicación o servicios.
+ForanIA: Plataforma Inteligente de Alquileres para Estudiantes Universitarios
+Introducción
+Cada año, miles de estudiantes deben trasladarse desde sus ciudades de origen hacia distintos puntos del país para comenzar o continuar sus estudios universitarios. Durante este proceso, una de las mayores dificultades consiste en encontrar un alojamiento adecuado que se adapte a sus necesidades, presupuesto y ubicación.
+Actualmente, la información sobre alquileres se encuentra dispersa en múltiples canales como redes sociales, grupos de Facebook, páginas web, inmobiliarias, clasificados y contactos personales. Esta fragmentación obliga a los estudiantes y sus familias a invertir una gran cantidad de tiempo buscando opciones, comparando precios y verificando información, sin la garantía de haber encontrado la mejor alternativa disponible.
+Frente a esta problemática surge ForanIA, una plataforma digital diseñada para centralizar y simplificar la búsqueda de alojamientos estudiantiles.
+________________
+
+
+¿Qué es ForanIA?
+ForanIA es una plataforma web orientada a estudiantes foráneos que necesitan encontrar alojamiento cerca de sus centros de estudio.
+Su principal objetivo es reunir en un único lugar la oferta de alquileres disponibles, permitiendo que los usuarios puedan buscar, comparar y contactar propiedades de forma rápida, sencilla y eficiente.
+Para la demostración inicial del proyecto, la plataforma estará enfocada en la ciudad de La Rioja, Argentina, aunque su diseño permite una futura expansión hacia otras provincias y universidades del país.
+________________
+
+
+Problemática que busca resolver
+Actualmente, un estudiante que necesita mudarse para estudiar debe consultar múltiples fuentes de información:
+* Grupos de Facebook.
+* Marketplace.
+* Perfiles de Instagram.
+* Sitios web inmobiliarios.
+* Clasificados digitales.
+* Recomendaciones personales.
+Esto genera diversos inconvenientes:
+* Pérdida de tiempo durante la búsqueda.
+* Información desactualizada o incompleta.
+* Dificultad para comparar opciones.
+* Escasa visibilidad de toda la oferta disponible.
+* Riesgo de tomar decisiones con información limitada.
+* Desconocimiento de las distancias reales entre la vivienda y la universidad.
+Como consecuencia, muchos estudiantes terminan alquilando una propiedad sin conocer alternativas potencialmente más convenientes en precio, ubicación o servicios.
+ForanIA busca eliminar esta fragmentación centralizando la información y facilitando la toma de decisiones.
+________________
+
+
+Objetivos del proyecto
+Objetivo general
+Facilitar el acceso a viviendas para estudiantes universitarios mediante una plataforma que centralice la oferta de alquileres y servicios relacionados.
+Objetivos específicos
+* Centralizar la oferta de alquileres estudiantiles.
+* Permitir la comparación rápida entre propiedades.
+* Mostrar la ubicación y cercanía a instituciones educativas.
+* Facilitar el contacto entre estudiantes y proveedores.
+* Incorporar servicios complementarios relacionados con la mudanza.
+* Reducir el tiempo de búsqueda y aumentar la calidad de las decisiones tomadas por los usuarios.
+________________
+
+
+Público objetivo
+ForanIA está dirigido principalmente a:
+Estudiantes universitarios foráneos
+Personas que deben mudarse de ciudad para cursar sus estudios.
+Familias de estudiantes
+Padres y tutores que participan activamente en la búsqueda de alojamiento.
+Inmobiliarias
+Empresas interesadas en promocionar propiedades destinadas al sector estudiantil.
+Propietarios particulares
+Dueños que desean publicar y gestionar sus alquileres.
+Transportistas y fleteros
+Prestadores de servicios de mudanza que buscan ofrecer sus servicios a estudiantes.
+________________
+
+
+Funcionalidades principales
+1. Catálogo centralizado de alquileres
+La plataforma contará con un listado completo de propiedades disponibles.
+Cada publicación incluirá:
+* Fotografías.
+* Precio mensual.
+* Ubicación.
+* Descripción.
+* Servicios incluidos.
+* Información de contacto.
+Esto permitirá que los usuarios encuentren toda la oferta disponible en un único lugar.
+________________
+
+
+2. Sistema de búsqueda y filtros
+Los usuarios podrán filtrar propiedades según distintos criterios:
+* Precio.
+* Tipo de propiedad.
+* Barrio.
+* Distancia a la universidad.
+* Servicios incluidos.
+* Propiedades amobladas.
+Esto permitirá encontrar rápidamente opciones acordes a las necesidades de cada estudiante.
+________________
+
+
+3. Mapa interactivo
+Una de las funcionalidades más importantes de ForanIA será la visualización geográfica de las propiedades.
+El usuario podrá:
+* Seleccionar una universidad.
+* Visualizar los alquileres cercanos.
+* Conocer la distancia entre la propiedad y el centro educativo.
+* Analizar la ubicación antes de tomar una decisión.
+________________
+
+
+4. Información sobre cercanía a centros de estudio
+Cada alquiler mostrará información relevante sobre accesibilidad.
+Por ejemplo:
+* Distancia en kilómetros.
+* Tiempo estimado caminando.
+* Tiempo estimado en bicicleta.
+* Tiempo estimado en vehículo.
+Esta funcionalidad resulta especialmente útil para estudiantes que no conocen la ciudad.
+________________
+
+
+5. Contacto directo con proveedores
+Cada publicación contará con información para contactar directamente al responsable del inmueble.
+Podrá incluir:
+* WhatsApp.
+* Correo electrónico.
+* Número telefónico.
+* Perfil de inmobiliaria o propietario.
+Esto agiliza el proceso de consulta y contratación.
+________________
+
+
+6. Directorio de fletes y mudanzas
+ForanIA también incorporará una sección destinada a transportistas y fleteros.
+Los usuarios podrán:
+* Buscar servicios de mudanza.
+* Comparar opciones.
+* Contactar proveedores.
+* Solicitar presupuestos.
+De esta manera, la plataforma acompaña al estudiante no solo en la búsqueda del alojamiento, sino también en el proceso de traslado.
+________________
+
+
+Composición del sitio web
+Página de inicio
+Presenta la propuesta de valor del proyecto.
+Incluye:
+* Buscador principal.
+* Acceso rápido a alquileres.
+* Acceso a servicios de mudanza.
+* Información general sobre la plataforma.
+________________
+
+
+Catálogo de alquileres
+Permite explorar todas las propiedades disponibles mediante filtros y herramientas de búsqueda.
+________________
+
+
+Vista detallada del alquiler
+Muestra:
+* Fotografías.
+* Información completa.
+* Precio.
+* Servicios.
+* Ubicación.
+* Distancia a universidades.
+* Datos de contacto.
+________________
+
+
+Mapa interactivo
+Permite visualizar geográficamente todas las propiedades registradas.
+________________
+
+
+Sección de fletes
+Contiene los servicios de transporte y mudanza disponibles.
+________________
+
+
+Perfil de proveedores
+Espacio destinado a:
+* Inmobiliarias.
+* Propietarios.
+* Empresas de mudanza.
+Desde allí podrán gestionar sus publicaciones y datos de contacto.
+________________
+
+
+Innovación del proyecto
+La principal innovación de ForanIA no consiste únicamente en mostrar alquileres, sino en integrar dentro de una misma plataforma todos los elementos que intervienen en el proceso de mudanza estudiantil.
+La plataforma conecta:
+* Estudiantes.
+* Familias.
+* Inmobiliarias.
+* Propietarios.
+* Transportistas.
+Además, incorpora herramientas de geolocalización y comparación que permiten tomar decisiones más informadas.
+________________
+
+
+Impacto esperado
+La implementación de ForanIA permitirá:
+* Reducir el tiempo de búsqueda de alojamiento.
+* Mejorar el acceso a información confiable.
+* Facilitar la comparación entre opciones.
+* Incrementar la visibilidad de propietarios e inmobiliarias.
+* Simplificar el proceso de mudanza para estudiantes.
+* Favorecer la adaptación de estudiantes que llegan por primera vez a una nueva ciudad.
+________________
+
+
+Escalabilidad
+Aunque la primera versión estará enfocada en la ciudad de La Rioja, el modelo puede extenderse fácilmente a:
+* Otras ciudades universitarias.
+* Otras provincias argentinas.
+* Instituciones educativas de todo el país.
+Esto convierte a ForanIA en una solución con potencial de crecimiento nacional.
+________________
+
+
+Conclusión
+ForanIA nace como una respuesta a una problemática real que afecta a miles de estudiantes universitarios cada año: la dificultad para encontrar alojamiento de manera rápida, confiable y eficiente.
+Mediante la centralización de alquileres, la incorporación de mapas interactivos, la visualización de distancias a centros educativos y la integración de servicios de mudanza, la plataforma busca transformar la experiencia de quienes deben mudarse para estudiar.
+Más que una página de alquileres, ForanIA pretende convertirse en el principal punto de encuentro entre estudiantes y proveedores de servicios relacionados con la vida universitaria, facilitando la transición hacia una nueva etapa académica y personal.

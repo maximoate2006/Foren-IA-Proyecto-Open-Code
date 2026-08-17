@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "nombre": "Mudanzas Rioja Express",
+    "tipo": "Camión mediano",
+    "rating": 4.8,
+    "cobertura": "Toda La Rioja",
+    "img": "linear-gradient(135deg,#f97316,#7c2d12)",
+    "emoji": "🚛",
+    "telefono": "+5493804555001",
+    "email": "contacto@riojaexpress.com",
+    "whatsapp": "5493804555001"
+  },
+  {
+    "id": 2,
+    "nombre": "Flete Veloz UNLaR",
+    "tipo": "Camioneta",
+    "rating": 4.6,
+    "cobertura": "Centro y Zona UNLaR",
+    "img": "linear-gradient(135deg,#06b6d4,#155e75)",
+    "emoji": "🛻",
+    "telefono": "+5493804555002",
+    "email": "info@fleteveloz.com",
+    "whatsapp": "5493804555002"
+  },
+  {
+    "id": 3,
+    "nombre": "Transportes Catamarca",
+    "tipo": "Camión grande",
+    "rating": 4.9,
+    "cobertura": "Provincia completa",
+    "img": "linear-gradient(135deg,#10b981,#047857)",
+    "emoji": "🚚",
+    "telefono": "+5493804555003",
+    "email": "reservas@transportescatamarca.com",
+    "whatsapp": "5493804555003"
+  },
+  {
+    "id": 4,
+    "nombre": "Mudanza Express 24hs",
+    "tipo": "Camión pequeño",
+    "rating": 4.5,
+    "cobertura": "Toda La Rioja",
+    "img": "linear-gradient(135deg,#6366f1,#312e81)",
+    "emoji": "📦",
+    "telefono": "+5493804555004",
+    "email": "mudanzaexpress24hs@gmail.com",
+    "whatsapp": "5493804555004"
+  }
+]

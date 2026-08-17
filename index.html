@@ -17,6 +17,7 @@
       <a href="#" data-nav="alquileres" class="nav-link">Alquileres</a>
       <a href="#" data-nav="fletes" class="nav-link">Fletes</a>
       <a href="#" data-nav="publicar" class="nav-link">Publicar propiedad</a>
+      <a href="#" data-nav="proveedores" class="nav-link">Proveedores</a>
       <div class="nav-mobile-extra">
         <button class="btn btn-ghost" data-nav="favoritos"><span class="ico">&#9829;</span> Favoritos</button>
         <button class="btn btn-primary" data-nav="perfil">Iniciar sesión</button>
@@ -67,6 +68,14 @@
             </label>
             <button type="submit" class="btn btn-primary btn-lg">Buscar alojamiento</button>
           </form>
+          <div class="quick-results" id="quickResults" style="display:none">
+            <div class="quick-results-head">
+              <h3>Resultados de tu búsqueda</h3>
+              <button class="btn btn-ghost" id="closeQuickResults">Cerrar</button>
+            </div>
+            <p class="muted" id="quickResultsCount"></p>
+            <div class="grid-3" id="quickResultsGrid"></div>
+          </div>
         </div>
         <div class="hero-stats">
           <div><strong>120+</strong><span>Alojamientos</span></div>
@@ -107,6 +116,48 @@
       </div>
       <div class="grid-3" id="featuredGrid"></div>
     </section>
+
+    <section class="container section">
+      <h2 class="section-title">¿Qué es ForanIA?</h2>
+      <div class="about-grid">
+        <div class="about-card card">
+          <div class="about-icon">&#127968;</div>
+          <h3>La plataforma</h3>
+          <p>ForanIA es una plataforma web orientada a estudiantes foráneos que necesitan encontrar alojamiento cerca de sus centros de estudio en La Rioja. Reúne en un único lugar la oferta de alquileres disponibles.</p>
+        </div>
+        <div class="about-card card">
+          <div class="about-icon">&#128269;</div>
+          <h3>El problema</h3>
+          <p>La información sobre alquileres está dispersa en redes sociales, grupos de Facebook, inmobiliarias y clasificados. Esto genera pérdida de tiempo, información desactualizada y dificultad para comparar opciones.</p>
+        </div>
+        <div class="about-card card">
+          <div class="about-icon">&#10003;</div>
+          <h3>Nuestra solución</h3>
+          <p>Centralizamos la información, incorporamos mapas interactivos, mostramos distancias reales a universidades y conectamos estudiantes con propietarios e inmobiliarias de forma directa.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="container section">
+      <h2 class="section-title">¿Cómo funciona?</h2>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <h3>Buscá</h3>
+          <p>Filtrá por universidad, barrio, precio y tipo de propiedad para encontrar las opciones que mejor se adapten a tus necesidades.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <h3>Compará</h3>
+          <p>Usá el comparador para ver hasta 3 propiedades lado a lado. Revisá distancias, servicios, precios y más.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <h3>Contactá</h3>
+          <p>Contactá directamente al propietario o inmobiliaria por WhatsApp, email o teléfono. Y si necesitás mudanza, también tenemos fletes.</p>
+        </div>
+      </div>
+    </section>
   </section>
 
   <!-- ===== ALQUILERES ===== -->
@@ -137,6 +188,10 @@
             <div class="filter-group">
               <label>Universidad</label>
               <select id="fUni"><option value="">Todas</option><option>UNLaR</option><option>UTN</option></select>
+            </div>
+            <div class="filter-group">
+              <label>Barrio</label>
+              <select id="fBarrio"><option value="">Todos</option><option>Centro</option><option>Zona UNLaR</option><option>San Vicente</option><option>Coquimbito</option><option>Santa Justina</option></select>
             </div>
             <div class="filter-group">
               <label>Distancia máxima</label>
@@ -176,9 +231,52 @@
   <!-- ===== FLETES ===== -->
   <section id="fletes" class="page">
     <div class="container section">
-      <h2 class="section-title">Fletes</h2>
-      <p class="muted">Encontrá el transporte que necesitás para tu mudanza.</p>
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Fletes y mudanzas</h2>
+          <p class="muted">Encontrá el transporte que necesitás para tu mudanza en La Rioja.</p>
+        </div>
+      </div>
+      <div class="fletes-search card" style="margin-bottom:20px">
+        <form class="search-bar" id="fletesSearchForm" style="box-shadow:none;padding:8px">
+          <label>Buscar servicio
+            <input type="text" id="fletesSearchInput" placeholder="Nombre del servicio o zona..." style="width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;margin-top:5px;font-size:.92rem">
+          </label>
+          <button type="submit" class="btn btn-primary">Buscar</button>
+          <button type="button" class="btn btn-ghost" id="clearFletesSearch">Limpiar</button>
+        </form>
+      </div>
       <div class="grid-3" id="fletesGrid"></div>
+
+      <!-- Chatbot de Fletes -->
+      <div class="chatbot-section" id="chatbotSection" style="display:none">
+        <div class="chatbot-container">
+          <div class="chatbot-header">
+            <button class="btn btn-ghost chatbot-back" id="chatbotBack">&larr; Volver</button>
+            <div class="chatbot-header-info">
+              <span class="chatbot-emoji" id="chatbotEmoji"></span>
+              <div>
+                <strong id="chatbotFleteName"></strong>
+                <span class="muted" id="chatbotFleteCobertura" style="font-size:.82rem"></span>
+              </div>
+            </div>
+          </div>
+          <div class="chatbot-messages" id="chatbotMessages"></div>
+          <div class="chatbot-typing" id="chatbotTyping" style="display:none">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="chatbot-input-area">
+            <input type="text" id="chatbotInput" placeholder="Escribí tu respuesta..." autocomplete="off">
+            <button class="btn btn-primary" id="chatbotSend">Enviar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="fletes-quote-section card" style="margin-top:24px;padding:24px">
+        <h3 style="margin-bottom:8px">¿Necesitás un presupuesto para tu mudanza?</h3>
+        <p class="muted" style="margin-bottom:16px">Completá el formulario y los transportistas te contactarán con una cotización.</p>
+        <button class="btn btn-primary" id="openQuoteForm">Solicitar presupuesto</button>
+      </div>
     </div>
   </section>
 
@@ -239,6 +337,80 @@
           <li>Centro · hasta $200.000</li>
         </ul>
       </div>
+    </div>
+  </section>
+
+  <!-- ===== PROVEEDORES ===== -->
+  <section id="proveedores" class="page">
+    <div class="container section">
+      <h2 class="section-title">Panel de Proveedores</h2>
+      <p class="muted">Gestioná tus publicaciones como inmobiliaria, propietario o empresa de mudanza.</p>
+
+      <div class="provider-login card" id="providerLogin">
+        <h3>Ingresá como proveedor</h3>
+        <p class="muted" style="margin-bottom:16px">Completá tus datos para acceder al panel de gestión.</p>
+        <form class="form" id="providerLoginForm">
+          <div class="form-row">
+            <label>Nombre o Empresa<input type="text" placeholder="Ej: Inmobiliaria La Rioja" required></label>
+            <label>Tipo de proveedor<select id="providerType" required><option value="">Seleccionar...</option><option value="propietario">Propietario</option><option value="inmobiliaria">Inmobiliaria</option><option value="transportista">Transportista / Fletero</option></select></label>
+          </div>
+          <div class="form-row">
+            <label>Email<input type="email" placeholder="proveedor@email.com" required></label>
+            <label>Teléfono / WhatsApp<input type="tel" placeholder="+54 9 3804 ..." required></label>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg">Ingresar al panel</button>
+        </form>
+      </div>
+
+      <div class="provider-panel" id="providerPanel" style="display:none">
+        <div class="provider-welcome card">
+          <div class="provider-welcome-head">
+            <div class="avatar provider-avatar" id="provAvatar">P</div>
+            <div>
+              <h3 id="provName">Proveedor</h3>
+              <p class="muted" id="provType">Tipo</p>
+            </div>
+            <button class="btn btn-ghost" id="provLogout">Cerrar sesión</button>
+          </div>
+        </div>
+
+        <div class="provider-section" id="providerProperties">
+          <div class="section-head">
+            <h3>Mis publicaciones</h3>
+            <button class="btn btn-primary" id="addNewProp">+ Nueva propiedad</button>
+          </div>
+          <div class="grid-3" id="providerListings"></div>
+          <div class="card muted" id="noListings" style="text-align:center;padding:40px">
+            <p>No tenés publicaciones aún. Creá tu primera publicación para que los estudiantes te encuentren.</p>
+          </div>
+        </div>
+
+        <div class="provider-section" id="providerTransport" style="display:none">
+          <div class="section-head">
+            <h3>Mis servicios de transporte</h3>
+            <button class="btn btn-primary" id="addNewTransport">+ Nuevo servicio</button>
+          </div>
+          <div class="grid-3" id="providerTransportList"></div>
+          <div class="card muted" id="noTransport" style="text-align:center;padding:40px">
+            <p>No tenés servicios de transporte registrados. Agregá tu servicio para que los estudiantes te contacten.</p>
+          </div>
+        </div>
+
+        <div class="provider-stats card">
+          <h3 style="margin-bottom:12px">Estadísticas</h3>
+          <div class="profile-stats">
+            <div><strong id="provTotalProps">0</strong><span>Propiedades publicadas</span></div>
+            <div><strong id="provViews">0</strong><span>Visitas este mes</span></div>
+            <div><strong id="provContacts">0</strong><span>Contactos recibidos</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal" id="providerModal">
+        <button class="modal-close" id="providerModalClose">&times;</button>
+        <div class="detail-body" id="providerModalContent"></div>
+      </div>
+      <div class="overlay" id="providerOverlay"></div>
     </div>
   </section>
 
