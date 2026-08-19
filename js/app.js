@@ -1,44 +1,67 @@
-/* ===== FORANIA — lógica y datos simulados ===== */
+/* ===== FORANIA — lógica y datos desde Supabase ===== */
 "use strict";
 
 /* ---------- Datos ---------- */
-const IMGS = {
-  dep1: "linear-gradient(135deg,#8b5cf6,#4c1d95)",
-  dep2: "linear-gradient(135deg,#3b82f6,#1e40af)",
-  dep3: "linear-gradient(135deg,#f59e0b,#b45309)",
-  dep4: "linear-gradient(135deg,#10b981,#047857)",
-  dep5: "linear-gradient(135deg,#ec4899,#831843)",
-  dep6: "linear-gradient(135deg,#06b6d4,#155e75)",
-  dep7: "linear-gradient(135deg,#f97316,#7c2d12)",
-  dep8: "linear-gradient(135deg,#6366f1,#312e81)",
-  dep9: "linear-gradient(135deg,#14b8a6,#115e59)",
-  dep10: "linear-gradient(135deg,#a855f7,#581c87)",
-  dep11: "linear-gradient(135deg,#f43f5e,#9f1239)",
-  dep12: "linear-gradient(135deg,#64748b,#1e293b)"
-};
 const bg = (img) => img ? `background:${img}` : "background:#a78bfa";
 
-const PROPERTIES = [
-  { id:1, nombre:"Departamento moderno en Centro", tipo:"departamento", precio:320000, barrio:"Centro", dist:1.2, uni:"UNLaR", habs:2, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Aire acondicionado","Mesa de estudio"], img:"dep1", propietario:"María González", propAv:"MG", tel:"+54 9 3804 123456", email:"maria.gonzalez@email.com", whatsapp:"+5493804123456", desc:"Departamento luminoso en pleno centro, a pasos de la peatonal y a minutos de la UNLaR. Ideal para estudiantes que buscan comodidad y cercanía." },
-  { id:2, nombre:"Monoambiente Zona UNLaR", tipo:"departamento", precio:220000, barrio:"Zona UNLaR", dist:0.4, uni:"UNLaR", habs:1, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Mesa de estudio","Lavadora"], img:"dep2", propietario:"Carlos Sosa", propAv:"CS", tel:"+54 9 3804 234567", email:"carlos.sosa@email.com", whatsapp:"+5493804234567", desc:"Monoambiente amoblado a 4 cuadras de la UNLaR. Podés ir caminando y olvidarte del bondi." },
-  { id:3, nombre:"Casa con patio en San Vicente", tipo:"casa", precio:400000, barrio:"San Vicente", dist:3.5, uni:"UNLaR", habs:3, banos:2, wifi:true, amoblado:false, cochera:true, servicios:["Cochera","Patio","WiFi","Calefacción"], img:"dep3", propietario:"Laura Fernández", propAv:"LF", tel:"+54 9 3804 345678", email:"laura.fernandez@email.com", whatsapp:"+5493804345678", desc:"Casa amplia con patio y cochera, ideal para compartir entre 3 estudiantes. Zona tranquila y segura." },
-  { id:4, nombre:"Habitación en Coquimbito", tipo:"habitacion", precio:150000, barrio:"Coquimbito", dist:2.1, uni:"UTN", habs:1, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Gastos incluidos"], img:"dep4", propietario:"Jorge Medina", propAv:"JM", tel:"+54 9 3804 456789", email:"jorge.medina@email.com", whatsapp:"+5493804456789", desc:"Habitación individual en casa compartida con otros estudiantes. Gastos y wifi incluidos en el precio." },
-  { id:5, nombre:"Departamento Santa Justina", tipo:"departamento", precio:280000, barrio:"Santa Justina", dist:5.2, uni:"UTN", habs:2, banos:1, wifi:true, amoblado:false, cochera:true, servicios:["Cochera","WiFi","Balcón"], img:"dep5", propietario:"Ana Ríos", propAv:"AR", tel:"+54 9 3804 567890", email:"ana.rios@email.com", whatsapp:"+5493804567890", desc:"Dúplex de 2 dormitorios con balcón y cochera cubierta. Excelente relación precio-superficie." },
-  { id:6, nombre:"Loft amueblado Centro", tipo:"departamento", precio:350000, barrio:"Centro", dist:1.5, uni:"UNLaR", habs:1, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Smart TV","Microondas"], img:"dep6", propietario:"Diego Luna", propAv:"DL", tel:"+54 9 3804 678901", email:"diego.luna@email.com", whatsapp:"+5493804678901", desc:"Loft moderno totalmente equipado. Pensado para estudiantes que quieren llegar y mudarse el mismo día." },
-  { id:7, nombre:"Departamento económico Centro", tipo:"departamento", precio:180000, barrio:"Centro", dist:1.0, uni:"UNLaR", habs:1, banos:1, wifi:false, amoblado:false, cochera:false, servicios:["Balcón","Mesa de estudio"], img:"dep7", propietario:"Raúl Castro", propAv:"RC", tel:"+54 9 3804 789012", email:"raul.castro@email.com", whatsapp:"+5493804789012", desc:"Departamento accesible para presupuestos ajustados. A 10 minutos caminando de la facultad." },
-  { id:8, nombre:"Casa compartida Zona UNLaR", tipo:"casa", precio:200000, barrio:"Zona UNLaR", dist:0.8, uni:"UNLaR", habs:3, banos:2, wifi:true, amoblado:true, cochera:true, servicios:["WiFi","Amoblado","Cochera","Patio"], img:"dep8", propietario:"Silvia Torres", propAv:"ST", tel:"+54 9 3804 890123", email:"silvia.torres@email.com", whatsapp:"+5493804890123", desc:"Casa amplia a 2 cuadras de la UNLaR, perfecta para un grupo de amigos que quiere compartir." },
-  { id:9, nombre:"Habitación premium San Vicente", tipo:"habitacion", precio:190000, barrio:"San Vicente", dist:3.0, uni:"UNLaR", habs:1, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Baño privado","Aire acondicionado"], img:"dep9", propietario:"Hugo Aguirre", propAv:"HA", tel:"+54 9 3804 901234", email:"hugo.aguirre@email.com", whatsapp:"+5493804901234", desc:"Habitación con baño privado y aire acondicionado en casa moderna. Muy cómoda para estudiar." },
-  { id:10, nombre:"Departamento dúplex Coquimbito", tipo:"departamento", precio:380000, barrio:"Coquimbito", dist:2.8, uni:"UTN", habs:2, banos:2, wifi:true, amoblado:true, cochera:true, servicios:["WiFi","Amoblado","Cochera","Terraza"], img:"dep10", propietario:"Marta López", propAv:"ML", tel:"+54 9 3804 012345", email:"marta.lopez@email.com", whatsapp:"+5493804012345", desc:"Dúplex con terraza propia y cochera doble. Uno de los alojamientos mejor puntuados del barrio." },
-  { id:11, nombre:"Estudio minimalista Centro", tipo:"departamento", precio:260000, barrio:"Centro", dist:1.3, uni:"UNLaR", habs:1, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Mesa de estudio","Ascensor"], img:"dep11", propietario:"Pedro Villafañe", propAv:"PV", tel:"+54 9 3804 112233", email:"pedro.villafane@email.com", whatsapp:"+5493804112233", desc:"Estudio moderno con diseño minimalista en edificio con ascensor. A 5 cuadras de la UNLaR." },
-  { id:12, nombre:"Casa con cochera Santa Justina", tipo:"casa", precio:450000, barrio:"Santa Justina", dist:4.6, uni:"UTN", habs:4, banos:2, wifi:true, amoblado:false, cochera:true, servicios:["Cochera","Jardín","WiFi","Parrilla"], img:"dep12", propietario:"Nora Campos", propAv:"NC", tel:"+54 9 3804 445566", email:"nora.campos@email.com", whatsapp:"+5493804445566", desc:"Casa familiar espaciosa con jardín y parrilla. Muy buena para grupos grandes de estudiantes." }
-];
+const API_URL = "http://localhost:3001/api";
+let PROPERTIES = [];
+let FLETES = [];
+let REFS = {};
 
-const FLETES = [
-  { id:1, nombre:"Mudanzas Rioja Express", tipo:"Camión mediano", rating:4.8, cobertura:"Toda La Rioja", img:"linear-gradient(135deg,#f97316,#7c2d12)", emoji:"🚛", telefono:"+5493804555001", email:"contacto@riojaexpress.com", whatsapp:"5493804555001" },
-  { id:2, nombre:"Flete Veloz UNLaR", tipo:"Camioneta", rating:4.6, cobertura:"Centro y Zona UNLaR", img:"linear-gradient(135deg,#06b6d4,#155e75)", emoji:"🛻", telefono:"+5493804555002", email:"info@fleteveloz.com", whatsapp:"5493804555002" },
-  { id:3, nombre:"Transportes Catamarca", tipo:"Camión grande", rating:4.9, cobertura:"Provincia completa", img:"linear-gradient(135deg,#10b981,#047857)", emoji:"🚚", telefono:"+5493804555003", email:"reservas@transportescatamarca.com", whatsapp:"5493804555003" },
-  { id:4, nombre:"Mudanza Express 24hs", tipo:"Camión pequeño", rating:4.5, cobertura:"Toda La Rioja", img:"linear-gradient(135deg,#6366f1,#312e81)", emoji:"📦", telefono:"+5493804555004", email:"mudanzaexpress24hs@gmail.com", whatsapp:"5493804555004" }
-];
+async function loadData() {
+  try {
+    const [propsRes, fletesRes] = await Promise.all([
+      fetch(`${API_URL}/alojamientos`),
+      fetch(`${API_URL}/fletes`)
+    ]);
+    if (propsRes.ok) PROPERTIES = await propsRes.json();
+    if (fletesRes.ok) FLETES = await fletesRes.json();
+    filteredProps = [...PROPERTIES];
+  } catch (err) {
+    console.error("Error cargando datos desde la API:", err);
+  }
+}
+
+function populateSelect(selector, data, placeholder, lowerValues) {
+  const el = $(selector);
+  if (!el) return;
+  el.innerHTML = `<option value="">${placeholder}</option>`;
+  data.forEach(d => {
+    const opt = document.createElement("option");
+    const val = lowerValues ? d.nombre.toLowerCase() : d.nombre;
+    opt.value = val;
+    opt.textContent = d.nombre;
+    el.appendChild(opt);
+  });
+}
+
+async function loadReferences() {
+  try {
+    const res = await fetch(`${API_URL}/referencias`);
+    if (!res.ok) return;
+    REFS = await res.json();
+    populateSelect("#searchUni", REFS.universidades || [], "Cualquiera");
+    populateSelect("#searchType", REFS.tipos_alojamiento || [], "Cualquiera", true);
+    populateSelect("#fUni", REFS.universidades || [], "Todas");
+    populateSelect("#fType", REFS.tipos_alojamiento || [], "Todos", true);
+    populateSelect("#fBarrio", REFS.barrios || [], "Todos");
+    populateSelect("#pubTipo", REFS.tipos_alojamiento || [], "Seleccionar...", true);
+    populateSelect("#pubBarrio", REFS.barrios || [], "Seleccionar...");
+  } catch (err) {
+    console.error("Error cargando referencias:", err);
+  }
+}
+
+async function trackView(proveedorId, alojamientoId, fleteId) {
+  try {
+    await fetch(`${API_URL}/vistas`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ proveedor_id: proveedorId, alojamiento_id: alojamientoId || null, flete_id: fleteId || null })
+    });
+  } catch (e) { /* no bloquea */ }
+}
 
 /* ---------- Estado ---------- */
 let favorites = JSON.parse(localStorage.getItem("forania_favs") || "[]");
@@ -225,6 +248,7 @@ $("#toggleMapBtn").addEventListener("click", () => {
 function openDetail(id) {
   const p = PROPERTIES.find(x => x.id === id);
   if (!p) return;
+  if (p.proveedor_id) trackView(p.proveedor_id, p.id);
   const modal = $("#modal");
   $("#modalContent").innerHTML = `
     <div class="gallery">
@@ -316,7 +340,7 @@ function renderCompareBar() {
     const p = PROPERTIES.find(x => x.id === id);
     const el = document.createElement("div");
     el.className = "compare-thumb";
-    el.style.background = IMGS[p.img];
+    el.style.background = p.img;
     el.title = p.nombre;
     el.innerHTML = `<button data-rm="${id}">&times;</button>`;
     list.appendChild(el);
@@ -395,7 +419,7 @@ $("#clearFletesSearch").addEventListener("click", () => {
 });
 
 /* ---------- Chatbot de Fletes ---------- */
-const CHATBOT_API = "http://localhost:3001/api";
+const CHATBOT_API = API_URL;
 let chatbotState = { step: 0, data: {}, flete: null };
 
 const CHATBOT_STEPS = [
@@ -538,6 +562,7 @@ async function chatbotFinish() {
 function initChatbot(fleteId) {
   const flete = FLETES.find(f => f.id === fleteId);
   if (!flete) return;
+  trackView(fleteId, null, fleteId);
 
   chatbotState = { step: 0, data: {}, flete };
   $("#chatbotSection").style.display = "";
@@ -643,7 +668,7 @@ $("#heroSearch").addEventListener("submit", (e) => {
   const bud = +$("#searchBudget").value;
   const tipo = $("#searchType").value;
   filteredProps = PROPERTIES.filter(p =>
-    (uni === "Cualquiera" || p.uni === uni) &&
+    (!uni || p.uni === uni) &&
     (!bud || p.precio <= bud) &&
     (!tipo || p.tipo === tipo)
   );
@@ -667,10 +692,15 @@ $("#publishForm").addEventListener("submit", (e) => {
 });
 
 /* ---------- Init ---------- */
-renderFeatured();
-renderFletes();
-renderCatalog(PROPERTIES);
-$("#favCountTop").textContent = favorites.length;
+async function init() {
+  await Promise.all([loadData(), loadReferences()]);
+  renderFeatured();
+  renderFletes();
+  renderCatalog(PROPERTIES);
+  $("#favCountTop").textContent = favorites.length;
+  initProviderSection();
+}
+init();
 
 /* ---------- Proveedores ---------- */
 let providerLoggedIn = false;
@@ -678,14 +708,28 @@ let providerData = null;
 let providerListings = [];
 let providerTransportList = [];
 
-function initProviderSection() {
+async function initProviderSection() {
   const saved = JSON.parse(localStorage.getItem("forania_provider") || "null");
   if (saved) {
     providerData = saved;
     providerLoggedIn = true;
-    providerListings = JSON.parse(localStorage.getItem("forania_provider_listings") || "[]");
-    providerTransportList = JSON.parse(localStorage.getItem("forania_provider_transport") || "[]");
+    await loadProviderDataFromAPI();
     showProviderPanel();
+  }
+}
+
+async function loadProviderDataFromAPI() {
+  if (!providerData?.id) return;
+  try {
+    if (providerData.tipo === "transportista") {
+      const res = await fetch(`${API_URL}/proveedores/${providerData.id}/fletes`);
+      if (res.ok) providerTransportList = await res.json();
+    } else {
+      const res = await fetch(`${API_URL}/proveedores/${providerData.id}/alojamientos`);
+      if (res.ok) providerListings = await res.json();
+    }
+  } catch (err) {
+    console.error("Error cargando datos del proveedor:", err);
   }
 }
 
@@ -777,10 +821,19 @@ function renderProviderTransport() {
   g.querySelectorAll(".provider-delete-transport").forEach(b => b.addEventListener("click", () => deleteProviderTransport(+b.dataset.idx)));
 }
 
-function updateProviderStats() {
+async function updateProviderStats() {
   $("#provTotalProps").textContent = providerData.tipo === "transportista" ? providerTransportList.length : providerListings.length;
-  $("#provViews").textContent = Math.floor(Math.random() * 200) + 50;
-  $("#provContacts").textContent = Math.floor(Math.random() * 30) + 5;
+  try {
+    const res = await fetch(`${API_URL}/proveedores/${providerData.id}/stats`);
+    if (res.ok) {
+      const stats = await res.json();
+      $("#provViews").textContent = stats.vistas || 0;
+      $("#provContacts").textContent = stats.contactos || 0;
+      return;
+    }
+  } catch (e) {}
+  $("#provViews").textContent = 0;
+  $("#provContacts").textContent = 0;
 }
 
 function openProviderModal(title, formHTML) {
@@ -795,6 +848,10 @@ function closeProviderModal() {
 }
 
 function providerFormHTML(p) {
+  const tiposOpts = (REFS.tipos_alojamiento || [])
+    .map(t => `<option value="${t.nombre.toLowerCase()}" ${p && p.tipo === t.nombre.toLowerCase() ? 'selected' : ''}>${t.nombre}</option>`).join("");
+  const barriosOpts = (REFS.barrios || [])
+    .map(b => `<option value="${b.nombre}" ${p && p.barrio === b.nombre ? 'selected' : ''}>${b.nombre}</option>`).join("");
   return `
     <form class="form" id="providerPropForm">
       <div class="form-row">
@@ -802,15 +859,20 @@ function providerFormHTML(p) {
         <label>Precio ($/mes)<input type="number" id="ppPrecio" value="${p ? p.precio : ''}" placeholder="320000" required></label>
       </div>
       <div class="form-row">
-        <label>Tipo<select id="ppTipo"><option value="departamento" ${p && p.tipo === 'departamento' ? 'selected' : ''}>Departamento</option><option value="habitacion" ${p && p.tipo === 'habitacion' ? 'selected' : ''}>Habitación</option><option value="casa" ${p && p.tipo === 'casa' ? 'selected' : ''}>Casa</option></select></label>
-        <label>Barrio<select id="ppBarrio"><option value="Centro" ${p && p.barrio === 'Centro' ? 'selected' : ''}>Centro</option><option value="Zona UNLaR" ${p && p.barrio === 'Zona UNLaR' ? 'selected' : ''}>Zona UNLaR</option><option value="San Vicente" ${p && p.barrio === 'San Vicente' ? 'selected' : ''}>San Vicente</option><option value="Coquimbito" ${p && p.barrio === 'Coquimbito' ? 'selected' : ''}>Coquimbito</option><option value="Santa Justina" ${p && p.barrio === 'Santa Justina' ? 'selected' : ''}>Santa Justina</option></select></label>
+        <label>Tipo<select id="ppTipo"><option value="">Seleccionar...</option>${tiposOpts}</select></label>
+        <label>Barrio<select id="ppBarrio"><option value="">Seleccionar...</option>${barriosOpts}</select></label>
       </div>
       <div class="form-row">
         <label>Habitaciones<input type="number" id="ppHabs" min="1" value="${p ? p.habs : 1}"></label>
         <label>Baños<input type="number" id="ppBanos" min="1" value="${p ? p.banos : 1}"></label>
       </div>
       <label>Descripción<textarea id="ppDesc" rows="3" placeholder="Describí tu propiedad...">${p ? p.desc : ''}</textarea></label>
-      <label>URL de foto (opcional)<input type="text" id="ppImg" placeholder="URL de imagen..." value="${p ? p.img : ''}"></label>
+      <label>Universidad
+        <select id="ppUni">
+          <option value="">Seleccionar...</option>
+          ${(REFS.universidades || []).map(u => `<option value="${u.nombre}" ${p && p.uni === u.nombre ? 'selected' : ''}>${u.nombre}</option>`).join("")}
+        </select>
+      </label>
       <div class="filter-group checks">
         <label><input type="checkbox" id="ppWifi" ${p && p.wifi ? 'checked' : ''}> WiFi</label>
         <label><input type="checkbox" id="ppAmoblado" ${p && p.amoblado ? 'checked' : ''}> Amoblado</label>
@@ -821,11 +883,13 @@ function providerFormHTML(p) {
 }
 
 function transportFormHTML(t) {
+  const vehiculosOpts = (REFS.tipos_vehiculo || [])
+    .map(v => `<option value="${v.nombre}" ${t && t.tipo === v.nombre ? 'selected' : ''}>${v.nombre}</option>`).join("");
   return `
     <form class="form" id="providerTransForm">
       <label>Nombre del servicio<input type="text" id="ptNombre" value="${t ? t.nombre : ''}" placeholder="Ej: Mudanzas Express" required></label>
       <div class="form-row">
-        <label>Tipo de vehículo<input type="text" id="ptTipo" value="${t ? t.tipo : ''}" placeholder="Ej: Camión mediano" required></label>
+        <label>Tipo de vehículo<select id="ptTipo" required><option value="">Seleccionar...</option>${vehiculosOpts}</select></label>
         <label>Zona de cobertura<input type="text" id="ptCobertura" value="${t ? t.cobertura : ''}" placeholder="Ej: Toda La Rioja" required></label>
       </div>
       <button type="submit" class="btn btn-primary btn-lg">${t ? 'Guardar cambios' : 'Registrar servicio'}</button>
@@ -834,128 +898,175 @@ function transportFormHTML(t) {
 
 function saveProviderData() {
   localStorage.setItem("forania_provider", JSON.stringify(providerData));
-  localStorage.setItem("forania_provider_listings", JSON.stringify(providerListings));
-  localStorage.setItem("forania_provider_transport", JSON.stringify(providerTransportList));
 }
 
-function addProviderListing() {
+async function addProviderListing() {
   openProviderModal("Nueva propiedad", providerFormHTML(null));
-  $("#providerPropForm").addEventListener("submit", (e) => {
+  $("#providerPropForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const newProp = {
-      id: Date.now(),
-      nombre: $("#ppNombre").value,
+    const payload = {
+      proveedor_id: providerData.id,
+      titulo: $("#ppNombre").value,
       tipo: $("#ppTipo").value,
-      precio: +$("#ppPrecio").value,
+      precio_mensual: +$("#ppPrecio").value,
       barrio: $("#ppBarrio").value,
-      dist: Math.round((Math.random() * 4 + 0.5) * 10) / 10,
-      uni: $("#ppBarrio").value.includes("UNLaR") ? "UNLaR" : "UTN",
-      habs: +$("#ppHabs").value,
+      habitaciones: +$("#ppHabs").value,
       banos: +$("#ppBanos").value,
+      descripcion: $("#ppDesc").value,
       wifi: $("#ppWifi").checked,
       amoblado: $("#ppAmoblado").checked,
       cochera: $("#ppCochera").checked,
-      servicios: [],
-      img: $("#ppImg").value || "dep1",
-      propietario: providerData.nombre,
-      propAv: providerData.nombre.charAt(0),
-      tel: providerData.tel || "",
-      email: providerData.email || "",
-      whatsapp: providerData.whatsapp || "",
-      desc: $("#ppDesc").value
+      universidad: $("#ppUni").value
     };
-    if (newProp.wifi) newProp.servicios.push("WiFi");
-    if (newProp.amoblado) newProp.servicios.push("Amoblado");
-    if (newProp.cochera) newProp.servicios.push("Cochera");
-    providerListings.push(newProp);
-    saveProviderData();
-    renderProviderListings();
-    updateProviderStats();
-    closeProviderModal();
-    toast("Propiedad publicada correctamente");
+    try {
+      const res = await fetch(`${API_URL}/alojamientos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error("Error al crear");
+      await loadProviderDataFromAPI();
+      renderProviderListings();
+      updateProviderStats();
+      closeProviderModal();
+      toast("Propiedad publicada correctamente");
+    } catch (err) {
+      toast("Error al publicar propiedad");
+      console.error(err);
+    }
   });
 }
 
-function editProviderListing(idx) {
+async function editProviderListing(idx) {
   const p = providerListings[idx];
   openProviderModal("Editar propiedad", providerFormHTML(p));
-  $("#providerPropForm").addEventListener("submit", (e) => {
+  $("#providerPropForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    p.nombre = $("#ppNombre").value;
-    p.tipo = $("#ppTipo").value;
-    p.precio = +$("#ppPrecio").value;
-    p.barrio = $("#ppBarrio").value;
-    p.habs = +$("#ppHabs").value;
-    p.banos = +$("#ppBanos").value;
-    p.wifi = $("#ppWifi").checked;
-    p.amoblado = $("#ppAmoblado").checked;
-    p.cochera = $("#ppCochera").checked;
-    p.img = $("#ppImg").value || p.img;
-    p.desc = $("#ppDesc").value;
-    p.servicios = [];
-    if (p.wifi) p.servicios.push("WiFi");
-    if (p.amoblado) p.servicios.push("Amoblado");
-    if (p.cochera) p.servicios.push("Cochera");
-    saveProviderData();
+    const payload = {
+      titulo: $("#ppNombre").value,
+      tipo: $("#ppTipo").value,
+      precio_mensual: +$("#ppPrecio").value,
+      barrio: $("#ppBarrio").value,
+      habitaciones: +$("#ppHabs").value,
+      banos: +$("#ppBanos").value,
+      descripcion: $("#ppDesc").value,
+      wifi: $("#ppWifi").checked,
+      amoblado: $("#ppAmoblado").checked,
+      cochera: $("#ppCochera").checked,
+      universidad: $("#ppUni").value
+    };
+    try {
+      const res = await fetch(`${API_URL}/alojamientos/${p.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error("Error al actualizar");
+      await loadProviderDataFromAPI();
+      renderProviderListings();
+      closeProviderModal();
+      toast("Propiedad actualizada");
+    } catch (err) {
+      toast("Error al actualizar propiedad");
+      console.error(err);
+    }
+  });
+}
+
+async function deleteProviderListing(idx) {
+  const p = providerListings[idx];
+  if (!confirm("¿Eliminar esta propiedad?")) return;
+  try {
+    await fetch(`${API_URL}/alojamientos/${p.id}`, { method: "DELETE" });
+    await loadProviderDataFromAPI();
     renderProviderListings();
-    closeProviderModal();
-    toast("Propiedad actualizada");
-  });
-}
-
-function deleteProviderListing(idx) {
-  providerListings.splice(idx, 1);
-  saveProviderData();
-  renderProviderListings();
-  updateProviderStats();
-  toast("Propiedad eliminada");
-}
-
-function addProviderTransport() {
-  openProviderModal("Nuevo servicio de transporte", transportFormHTML(null));
-  $("#providerTransForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    providerTransportList.push({
-      id: Date.now(),
-      nombre: $("#ptNombre").value,
-      tipo: $("#ptTipo").value,
-      cobertura: $("#ptCobertura").value,
-      rating: 0,
-      img: "linear-gradient(135deg,#f97316,#7c2d12)",
-      emoji: "&#128666;"
-    });
-    saveProviderData();
-    renderProviderTransport();
     updateProviderStats();
-    closeProviderModal();
-    toast("Servicio registrado correctamente");
+    toast("Propiedad eliminada");
+  } catch (err) {
+    toast("Error al eliminar propiedad");
+    console.error(err);
+  }
+}
+
+async function addProviderTransport() {
+  openProviderModal("Nuevo servicio de transporte", transportFormHTML(null));
+  $("#providerTransForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const payload = {
+      proveedor_id: providerData.id,
+      nombre_comercial: $("#ptNombre").value,
+      tipo_vehiculo: $("#ptTipo").value,
+      cobertura: $("#ptCobertura").value,
+      telefono: providerData.tel || "",
+      email: providerData.email || "",
+      whatsapp: providerData.whatsapp || ""
+    };
+    try {
+      const res = await fetch(`${API_URL}/fletes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error("Error al crear");
+      await loadProviderDataFromAPI();
+      renderProviderTransport();
+      updateProviderStats();
+      closeProviderModal();
+      toast("Servicio registrado correctamente");
+    } catch (err) {
+      toast("Error al registrar servicio");
+      console.error(err);
+    }
   });
 }
 
-function editProviderTransport(idx) {
+async function editProviderTransport(idx) {
   const t = providerTransportList[idx];
   openProviderModal("Editar servicio", transportFormHTML(t));
-  $("#providerTransForm").addEventListener("submit", (e) => {
+  $("#providerTransForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    t.nombre = $("#ptNombre").value;
-    t.tipo = $("#ptTipo").value;
-    t.cobertura = $("#ptCobertura").value;
-    saveProviderData();
-    renderProviderTransport();
-    closeProviderModal();
-    toast("Servicio actualizado");
+    const payload = {
+      nombre_comercial: $("#ptNombre").value,
+      tipo_vehiculo: $("#ptTipo").value,
+      cobertura: $("#ptCobertura").value,
+      telefono: providerData.tel || "",
+      email: providerData.email || "",
+      whatsapp: providerData.whatsapp || ""
+    };
+    try {
+      const res = await fetch(`${API_URL}/fletes/${t.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error("Error al actualizar");
+      await loadProviderDataFromAPI();
+      renderProviderTransport();
+      closeProviderModal();
+      toast("Servicio actualizado");
+    } catch (err) {
+      toast("Error al actualizar servicio");
+      console.error(err);
+    }
   });
 }
 
-function deleteProviderTransport(idx) {
-  providerTransportList.splice(idx, 1);
-  saveProviderData();
-  renderProviderTransport();
-  updateProviderStats();
-  toast("Servicio eliminado");
+async function deleteProviderTransport(idx) {
+  const t = providerTransportList[idx];
+  if (!confirm("¿Eliminar este servicio?")) return;
+  try {
+    await fetch(`${API_URL}/fletes/${t.id}`, { method: "DELETE" });
+    await loadProviderDataFromAPI();
+    renderProviderTransport();
+    updateProviderStats();
+    toast("Servicio eliminado");
+  } catch (err) {
+    toast("Error al eliminar servicio");
+    console.error(err);
+  }
 }
 
-$("#providerLoginForm").addEventListener("submit", (e) => {
+$("#providerLoginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const form = e.target;
   const nombre = form.querySelector('input[type="text"]').value;
@@ -963,10 +1074,32 @@ $("#providerLoginForm").addEventListener("submit", (e) => {
   const email = form.querySelector('input[type="email"]').value;
   const tel = form.querySelector('input[type="tel"]').value;
   if (!tipo) { toast("Seleccioná un tipo de proveedor"); return; }
-  providerData = { nombre, tipo, email, tel, whatsapp: tel.replace(/\s/g, "").replace("+", "") };
-  providerLoggedIn = true;
-  showProviderPanel();
-  toast(`Bienvenido, ${nombre}`);
+
+  try {
+    const res = await fetch(`${API_URL}/proveedores/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nombre, tipo, email, telefono: tel })
+    });
+    if (!res.ok) throw new Error("Error al iniciar sesión");
+    const prov = await res.json();
+    providerData = {
+      id: prov.id,
+      nombre: prov.nombre_comercial,
+      tipo,
+      email: prov.email,
+      tel: prov.telefono,
+      whatsapp: prov.whatsapp || tel.replace(/\s/g, "").replace("+", "")
+    };
+    providerLoggedIn = true;
+    saveProviderData();
+    await loadProviderDataFromAPI();
+    showProviderPanel();
+    toast(`Bienvenido, ${nombre}`);
+  } catch (err) {
+    toast("Error al iniciar sesión");
+    console.error(err);
+  }
 });
 
 $("#provLogout").addEventListener("click", () => {
@@ -975,8 +1108,6 @@ $("#provLogout").addEventListener("click", () => {
   providerListings = [];
   providerTransportList = [];
   localStorage.removeItem("forania_provider");
-  localStorage.removeItem("forania_provider_listings");
-  localStorage.removeItem("forania_provider_transport");
   showProviderLogin();
   toast("Sesión cerrada");
 });
@@ -985,5 +1116,3 @@ $("#addNewProp").addEventListener("click", addProviderListing);
 $("#addNewTransport").addEventListener("click", addProviderTransport);
 $("#providerModalClose").addEventListener("click", closeProviderModal);
 $("#providerOverlay").addEventListener("click", closeProviderModal);
-
-initProviderSection();
