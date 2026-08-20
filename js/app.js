@@ -1,44 +1,67 @@
-/* ===== FORANIA — lógica y datos simulados ===== */
+﻿/* ===== FORANIA ÔÇö l├│gica y datos desde Supabase ===== */
 "use strict";
 
 /* ---------- Datos ---------- */
-const IMGS = {
-  dep1: "linear-gradient(135deg,#8b5cf6,#4c1d95)",
-  dep2: "linear-gradient(135deg,#3b82f6,#1e40af)",
-  dep3: "linear-gradient(135deg,#f59e0b,#b45309)",
-  dep4: "linear-gradient(135deg,#10b981,#047857)",
-  dep5: "linear-gradient(135deg,#ec4899,#831843)",
-  dep6: "linear-gradient(135deg,#06b6d4,#155e75)",
-  dep7: "linear-gradient(135deg,#f97316,#7c2d12)",
-  dep8: "linear-gradient(135deg,#6366f1,#312e81)",
-  dep9: "linear-gradient(135deg,#14b8a6,#115e59)",
-  dep10: "linear-gradient(135deg,#a855f7,#581c87)",
-  dep11: "linear-gradient(135deg,#f43f5e,#9f1239)",
-  dep12: "linear-gradient(135deg,#64748b,#1e293b)"
-};
 const bg = (img) => img ? `background:${img}` : "background:#a78bfa";
 
-const PROPERTIES = [
-  { id:1, nombre:"Departamento moderno en Centro", tipo:"departamento", precio:320000, barrio:"Centro", dist:3.0, uni:"UNLaR", habs:2, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Aire acondicionado","Mesa de estudio"], img:"dep1", propietario:"María González", propAv:"MG", tel:"+54 9 3804 123456", email:"maria.gonzalez@email.com", whatsapp:"+5493804123456", desc:"Departamento luminoso en pleno centro, a pasos de la peatonal y a minutos de la UNLaR. Ideal para estudiantes que buscan comodidad y cercanía.", lat:-29.4126, lng:-66.8445 },
-  { id:2, nombre:"Monoambiente Zona UNLaR", tipo:"departamento", precio:220000, barrio:"Zona UNLaR", dist:1.5, uni:"UNLaR", habs:1, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Mesa de estudio","Lavadora"], img:"dep2", propietario:"Carlos Sosa", propAv:"CS", tel:"+54 9 3804 234567", email:"carlos.sosa@email.com", whatsapp:"+5493804234567", desc:"Monoambiente amoblado a 4 cuadras de la UNLaR. Podés ir caminando y olvidarte del bondi.", lat:-29.4223, lng:-66.8822 },
-  { id:3, nombre:"Casa con patio en San Vicente", tipo:"casa", precio:400000, barrio:"San Vicente", dist:3.0, uni:"UNLaR", habs:3, banos:2, wifi:true, amoblado:false, cochera:true, servicios:["Cochera","Patio","WiFi","Calefacción"], img:"dep3", propietario:"Laura Fernández", propAv:"LF", tel:"+54 9 3804 345678", email:"laura.fernandez@email.com", whatsapp:"+5493804345678", desc:"Casa amplia con patio y cochera, ideal para compartir entre 3 estudiantes. Zona tranquila y segura.", lat:-29.405691904492766, lng:-66.84856910945868 },
-  { id:4, nombre:"Habitación en Coquimbito", tipo:"habitacion", precio:150000, barrio:"Coquimbito", dist:1.2, uni:"UTN", habs:1, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Gastos incluidos"], img:"dep4", propietario:"Jorge Medina", propAv:"JM", tel:"+54 9 3804 456789", email:"jorge.medina@email.com", whatsapp:"+5493804456789", desc:"Habitación individual en casa compartida con otros estudiantes. Gastos y wifi incluidos en el precio.", lat:-29.416394976505227, lng:-66.83698377723476 },
-  { id:5, nombre:"Departamento Santa Justina", tipo:"departamento", precio:280000, barrio:"Santa Justina", dist:4.3, uni:"UTN", habs:2, banos:1, wifi:true, amoblado:false, cochera:true, servicios:["Cochera","WiFi","Balcón"], img:"dep5", propietario:"Ana Ríos", propAv:"AR", tel:"+54 9 3804 567890", email:"ana.rios@email.com", whatsapp:"+5493804567890", desc:"Dúplex de 2 dormitorios con balcón y cochera cubierta. Excelente relación precio-superficie.", lat:-29.436423918757917, lng:-66.87366214101084 },
-  { id:6, nombre:"Loft amueblado Centro", tipo:"departamento", precio:350000, barrio:"Centro", dist:3.4, uni:"UNLaR", habs:1, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Smart TV","Microondas"], img:"dep6", propietario:"Diego Luna", propAv:"DL", tel:"+54 9 3804 678901", email:"diego.luna@email.com", whatsapp:"+5493804678901", desc:"Loft moderno totalmente equipado. Pensado para estudiantes que quieren llegar y mudarse el mismo día.", lat:-29.41197033435157, lng:-66.8383682365972 },
-  { id:7, nombre:"Departamento económico Centro", tipo:"departamento", precio:180000, barrio:"Centro", dist:2.5, uni:"UNLaR", habs:1, banos:1, wifi:false, amoblado:false, cochera:false, servicios:["Balcón","Mesa de estudio"], img:"dep7", propietario:"Raúl Castro", propAv:"RC", tel:"+54 9 3804 789012", email:"raul.castro@email.com", whatsapp:"+5493804789012", desc:"Departamento accesible para presupuestos ajustados. A 10 minutos caminando de la facultad.", lat:-29.4293, lng:-66.8940 },
-  { id:8, nombre:"Casa compartida Zona UNLaR", tipo:"casa", precio:200000, barrio:"Zona UNLaR", dist:2.0, uni:"UNLaR", habs:3, banos:2, wifi:true, amoblado:true, cochera:true, servicios:["WiFi","Amoblado","Cochera","Patio"], img:"dep8", propietario:"Silvia Torres", propAv:"ST", tel:"+54 9 3804 890123", email:"silvia.torres@email.com", whatsapp:"+5493804890123", desc:"Casa amplia a 2 cuadras de la UNLaR, perfecta para un grupo de amigos que quiere compartir.", lat:-29.4170, lng:-66.8575 },
-  { id:9, nombre:"Habitación premium San Vicente", tipo:"habitacion", precio:190000, barrio:"San Vicente", dist:4.0, uni:"UNLaR", habs:1, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Baño privado","Aire acondicionado"], img:"dep9", propietario:"Hugo Aguirre", propAv:"HA", tel:"+54 9 3804 901234", email:"hugo.aguirre@email.com", whatsapp:"+5493804901234", desc:"Habitación con baño privado y aire acondicionado en casa moderna. Muy cómoda para estudiar.", lat:-29.4660, lng:-66.8520 },
-  { id:10, nombre:"Departamento dúplex Coquimbito", tipo:"departamento", precio:380000, barrio:"Coquimbito", dist:4.0, uni:"UTN", habs:2, banos:2, wifi:true, amoblado:true, cochera:true, servicios:["WiFi","Amoblado","Cochera","Terraza"], img:"dep10", propietario:"Marta López", propAv:"ML", tel:"+54 9 3804 012345", email:"marta.lopez@email.com", whatsapp:"+5493804012345", desc:"Dúplex con terraza propia y cochera doble. Uno de los alojamientos mejor puntuados del barrio.", lat:-29.4377, lng:-66.8598 },
-  { id:11, nombre:"Estudio minimalista Centro", tipo:"departamento", precio:260000, barrio:"Centro", dist:3.2, uni:"UNLaR", habs:1, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Mesa de estudio","Ascensor"], img:"dep11", propietario:"Pedro Villafañe", propAv:"PV", tel:"+54 9 3804 112233", email:"pedro.villafane@email.com", whatsapp:"+5493804112233", desc:"Estudio moderno con diseño minimalista en edificio con ascensor. A 5 cuadras de la UNLaR.", lat:-29.416158886319486, lng:-66.83690480912735 },
-  { id:12, nombre:"Casa con cochera Santa Justina", tipo:"casa", precio:450000, barrio:"Santa Justina", dist:3.9, uni:"UTN", habs:4, banos:2, wifi:true, amoblado:false, cochera:true, servicios:["Cochera","Jardín","WiFi","Parrilla"], img:"dep12", propietario:"Nora Campos", propAv:"NC", tel:"+54 9 3804 445566", email:"nora.campos@email.com", whatsapp:"+5493804445566", desc:"Casa familiar espaciosa con jardín y parrilla. Muy buena para grupos grandes de estudiantes.", lat:-29.43425699193456, lng:-66.86681127404425 }
-];
+const API_URL = "http://localhost:3001/api";
+let PROPERTIES = [];
+let FLETES = [];
+let REFS = {};
 
-const FLETES = [
-  { id:1, nombre:"Mudanzas Rioja Express", tipo:"Camión mediano", rating:4.8, cobertura:"Toda La Rioja", img:"linear-gradient(135deg,#f97316,#7c2d12)", emoji:"🚛", telefono:"+5493804555001", email:"contacto@riojaexpress.com", whatsapp:"5493804555001" },
-  { id:2, nombre:"Flete Veloz UNLaR", tipo:"Camioneta", rating:4.6, cobertura:"Centro y Zona UNLaR", img:"linear-gradient(135deg,#06b6d4,#155e75)", emoji:"🛻", telefono:"+5493804555002", email:"info@fleteveloz.com", whatsapp:"5493804555002" },
-  { id:3, nombre:"Transportes Catamarca", tipo:"Camión grande", rating:4.9, cobertura:"Provincia completa", img:"linear-gradient(135deg,#10b981,#047857)", emoji:"🚚", telefono:"+5493804555003", email:"reservas@transportescatamarca.com", whatsapp:"5493804555003" },
-  { id:4, nombre:"Mudanza Express 24hs", tipo:"Camión pequeño", rating:4.5, cobertura:"Toda La Rioja", img:"linear-gradient(135deg,#6366f1,#312e81)", emoji:"📦", telefono:"+5493804555004", email:"mudanzaexpress24hs@gmail.com", whatsapp:"5493804555004" }
-];
+async function loadData() {
+  try {
+    const [propsRes, fletesRes] = await Promise.all([
+      fetch(`${API_URL}/alojamientos`),
+      fetch(`${API_URL}/fletes`)
+    ]);
+    if (propsRes.ok) PROPERTIES = await propsRes.json();
+    if (fletesRes.ok) FLETES = await fletesRes.json();
+    filteredProps = [...PROPERTIES];
+  } catch (err) {
+    console.error("Error cargando datos desde la API:", err);
+  }
+}
+
+function populateSelect(selector, data, placeholder, lowerValues) {
+  const el = $(selector);
+  if (!el) return;
+  el.innerHTML = `<option value="">${placeholder}</option>`;
+  data.forEach(d => {
+    const opt = document.createElement("option");
+    const val = lowerValues ? d.nombre.toLowerCase() : d.nombre;
+    opt.value = val;
+    opt.textContent = d.nombre;
+    el.appendChild(opt);
+  });
+}
+
+async function loadReferences() {
+  try {
+    const res = await fetch(`${API_URL}/referencias`);
+    if (!res.ok) return;
+    REFS = await res.json();
+    populateSelect("#searchUni", REFS.universidades || [], "Cualquiera");
+    populateSelect("#searchType", REFS.tipos_alojamiento || [], "Cualquiera", true);
+    populateSelect("#fUni", REFS.universidades || [], "Todas");
+    populateSelect("#fType", REFS.tipos_alojamiento || [], "Todos", true);
+    populateSelect("#fBarrio", REFS.barrios || [], "Todos");
+    populateSelect("#pubTipo", REFS.tipos_alojamiento || [], "Seleccionar...", true);
+    populateSelect("#pubBarrio", REFS.barrios || [], "Seleccionar...");
+  } catch (err) {
+    console.error("Error cargando referencias:", err);
+  }
+}
+
+async function trackView(proveedorId, alojamientoId, fleteId) {
+  try {
+    await fetch(`${API_URL}/vistas`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ proveedor_id: proveedorId, alojamiento_id: alojamientoId || null, flete_id: fleteId || null })
+    });
+  } catch (e) { /* no bloquea */ }
+}
 
 /* ---------- Estado ---------- */
 let favorites = JSON.parse(localStorage.getItem("forania_favs") || "[]");
@@ -49,6 +72,15 @@ let filteredProps = [...PROPERTIES];
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
 const fmt = (n) => "$" + Number(n).toLocaleString("es-AR");
+function barrioName(p) {
+  if (!p || !p.barrio) return '';
+  return typeof p.barrio === 'string' ? p.barrio : (p.barrio.nombre || '');
+}
+function barrioField(p, field) {
+  if (!p || !p.barrio) return '';
+  if (typeof p.barrio === 'string') return '';
+  return p.barrio[field] || '';
+}
 const toast = (msg) => {
   const t = $("#toast");
   t.textContent = msg;
@@ -57,18 +89,14 @@ const toast = (msg) => {
   t._h = setTimeout(() => t.classList.remove("show"), 2200);
 };
 
-/* ---------- Navegación ---------- */
+/* ---------- Navegaci├│n ---------- */
 function goTo(page) {
   $$(".page").forEach(p => p.classList.remove("active"));
   $("#" + page).classList.add("active");
   $$(".nav-link").forEach(l => l.classList.toggle("active", l.dataset.nav === page));
   document.body.classList.remove("nav-open");
   window.scrollTo({ top: 0, behavior: "smooth" });
-  if (page === "alquileres") {
-    const allProps = [...PROPERTIES, ...serverProperties];
-    filteredProps = allProps;
-    renderCatalog(filteredProps);
-  }
+  if (page === "alquileres") renderCatalog(filteredProps);
   if (page === "favoritos") renderFavorites();
   if (page === "perfil") { $("#profFavs").textContent = favorites.length; $("#profComp").textContent = compare.length; }
 }
@@ -80,24 +108,20 @@ $$("[data-nav]").forEach(el => el.addEventListener("click", (e) => {
 $("#hamburger").addEventListener("click", () => document.body.classList.toggle("nav-open"));
 
 /* ---------- Tarjetas ---------- */
-function propImgHTML(p) {
-  if (Array.isArray(p.img) && p.img.length) {
-    return `<img src="http://localhost:3001/${p.img[0]}" alt="${p.nombre}" style="width:100%;height:100%;object-fit:cover">`;
-  }
-  return "";
-}
-
 function propCard(p, grid) {
   const fav = favorites.includes(p.id);
   const servs = p.servicios.slice(0, 2);
+  const hasImg = Array.isArray(p.imgs) && p.imgs.length > 0;
+  const imgStyle = hasImg
+    ? ''
+    : `style="${bg(p.img)}"`;
   const div = document.createElement("article");
   div.className = "card prop-card";
-  const hasRealImg = Array.isArray(p.img) && p.img.length;
   div.innerHTML = `
-    <div class="prop-img" style="${hasRealImg ? '' : bg(p.img)}">
-      ${hasRealImg ? propImgHTML(p) : ''}
+    <div class="prop-img" ${imgStyle}>
+      ${hasImg ? `<img src="${p.imgs[0]}" alt="${p.nombre}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:var(--radius) var(--radius) 0 0">` : ''}
       <button class="prop-fav ${fav ? 'on' : ''}" data-fav="${p.id}">${fav ? "&#9829;" : "&#9825;"}</button>
-      <span class="prop-tag">${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)} · ${barrioName(p)}</span>
+      <span class="prop-tag">${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)} ┬À ${barrioName(p)}</span>
     </div>
     <div class="prop-body">
       <h3 class="prop-title">${p.nombre}</h3>
@@ -107,7 +131,7 @@ function propCard(p, grid) {
         <span>&#9203; ${Math.round(p.dist * 12)} min caminando</span>
         <span>&#128690; ${Math.round(p.dist * 4)} min en bici</span>
         <span>&#128663; ${Math.round(p.dist * 2)} min en auto</span>
-        <span>&#128716; ${p.habs} hab · ${p.banos} baño</span>
+        <span>&#128716; ${p.habs} hab ┬À ${p.banos} ba├▒o</span>
       </div>
       <div class="prop-meta">${servs.map(s => `<span class="serv-tag ${p.amoblado ? 'hot' : ''}">${s}</span>`).join("")}</div>
       <div class="prop-actions">
@@ -152,15 +176,14 @@ function updateCardStates() {
 }
 function renderFavorites() {
   const g = $("#favGrid");
-  const allProps = [...PROPERTIES, ...serverProperties];
-  const list = allProps.filter(p => favorites.includes(p.id));
+  const list = PROPERTIES.filter(p => favorites.includes(p.id));
   g.innerHTML = "";
-  $("#favMsg").textContent = list.length ? `${list.length} propiedades guardadas` : "Todavía no tenés favoritos. Tocá el corazón en cualquier propiedad.";
+  $("#favMsg").textContent = list.length ? `${list.length} propiedades guardadas` : "Todav├¡a no ten├®s favoritos. Toc├í el coraz├│n en cualquier propiedad.";
   list.forEach(p => propCard(p, g));
   cardEvents(g);
 }
 
-/* ---------- Catálogo + filtros ---------- */
+/* ---------- Cat├ílogo + filtros ---------- */
 function applyFilters() {
   const maxP = +$("#fPrice").value;
   const tipo = $("#fType").value;
@@ -170,8 +193,7 @@ function applyFilters() {
   const amob = $("#fAmoblado").checked;
   const wifi = $("#fWifi").checked;
   const coch = $("#fCochera").checked;
-  const allProps = [...PROPERTIES, ...serverProperties];
-  filteredProps = allProps.filter(p =>
+  filteredProps = PROPERTIES.filter(p =>
     p.precio <= maxP &&
     (!tipo || p.tipo === tipo) &&
     (!uni || p.uni === uni) &&
@@ -188,7 +210,7 @@ function clearFilters() {
   $("#fPrice").value = 600000; $("#fPriceLabel").textContent = "$600.000";
   $("#fType").value = ""; $("#fUni").value = ""; $("#fBarrio").value = ""; $("#fDist").value = "99";
   $("#fAmoblado").checked = false; $("#fWifi").checked = false; $("#fCochera").checked = false;
-  filteredProps = [...PROPERTIES, ...serverProperties];
+  filteredProps = [...PROPERTIES];
   renderCatalog(filteredProps);
   toast("Filtros limpiados");
 }
@@ -207,7 +229,6 @@ $("#clearFilters").addEventListener("click", clearFilters);
 $("#fPrice").addEventListener("input", () => $("#fPriceLabel").textContent = fmt($("#fPrice").value));
 $("#filtersToggle").addEventListener("click", () => $(".filters-body").classList.toggle("open"));
 
-/* ---------- Mapa ---------- */
 /* ---------- Mapa Leaflet ---------- */
 let leafletMap = null;
 let mapMarkers = [];
@@ -269,16 +290,18 @@ $("#toggleMapBtn").addEventListener("click", () => {
 
 /* ---------- Detalle ---------- */
 function openDetail(id) {
-  const p = PROPERTIES.find(x => x.id === id) || serverProperties.find(x => x.id === id);
+  const p = PROPERTIES.find(x => x.id === id);
   if (!p) return;
+  if (p.proveedor_id) trackView(p.proveedor_id, p.id);
   const modal = $("#modal");
-  const hasRealImg = Array.isArray(p.img) && p.img.length;
-  const galleryHTML = hasRealImg
+
+  const hasImgs = Array.isArray(p.imgs) && p.imgs.length > 0;
+  const galleryHTML = hasImgs
     ? `<div class="gallery">
-        <div class="gallery-main"><img src="http://localhost:3001/${p.img[0]}" alt="${p.nombre}" style="width:100%;height:100%;object-fit:cover;border-radius:12px"></div>
+        <div class="gallery-main"><img src="${p.imgs[0]}" alt="${p.nombre}" style="width:100%;height:100%;object-fit:cover;border-radius:12px"></div>
         <div class="gallery-side">
-          ${p.img.length > 1 ? `<div><img src="http://localhost:3001/${p.img[1]}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:12px"></div>` : `<div style="${bg(p.img[0])}"></div>`}
-          ${p.img.length > 2 ? `<div><img src="http://localhost:3001/${p.img[2]}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:12px"></div>` : `<div style="${bg(p.img[0])};opacity:.7"></div>`}
+          ${p.imgs.length > 1 ? `<div><img src="${p.imgs[1]}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:12px"></div>` : `<div style="${bg(p.img)}"></div>`}
+          ${p.imgs.length > 2 ? `<div><img src="${p.imgs[2]}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:12px"></div>` : `<div style="${bg(p.img)};opacity:.7"></div>`}
         </div>
        </div>`
     : `<div class="gallery">
@@ -293,9 +316,9 @@ function openDetail(id) {
     <div class="detail-body">
       <div class="detail-head">
         <div>
-          <span class="prop-tag" style="position:static;background:#e8f4f8;color:var(--primary);display:inline-block;margin-bottom:8px">${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)} · ${barrioName(p)}</span>
+          <span class="prop-tag" style="position:static;background:#e8f4f8;color:var(--primary);display:inline-block;margin-bottom:8px">${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)} ┬À ${barrioName(p)}</span>
           <h2>${p.nombre}</h2>
-          <div class="prop-meta"><span>&#128205; ${p.dist.toFixed(1)} km de ${p.uni} · &#9203; ${Math.round(p.dist * 12)} min caminando · &#128690; ${Math.round(p.dist * 4)} min en bici · &#128663; ${Math.round(p.dist * 2)} min en auto</span></div>
+          <div class="prop-meta"><span>&#128205; ${p.dist.toFixed(1)} km de ${p.uni} ┬À &#9203; ${Math.round(p.dist * 12)} min caminando ┬À &#128690; ${Math.round(p.dist * 4)} min en bici ┬À &#128663; ${Math.round(p.dist * 2)} min en auto</span></div>
         </div>
         <div class="detail-price">${fmt(p.precio)}<small style="font-size:.85rem;color:var(--muted)"> / mes</small></div>
       </div>
@@ -303,15 +326,15 @@ function openDetail(id) {
       <div class="chips">${p.servicios.map(s => `<span class="serv-tag ${p.amoblado ? 'hot' : ''}">${s}</span>`).join("")}</div>
       <div class="detail-grid">
         <div class="detail-item"><span class="d-ico">&#128716;</span><div><b>${p.habs} habitaciones</b>${p.tipo}</div></div>
-        <div class="detail-item"><span class="d-ico">&#128701;</span><div><b>${p.banos} baños</b>completo</div></div>
+        <div class="detail-item"><span class="d-ico">&#128701;</span><div><b>${p.banos} ba├▒os</b>completo</div></div>
         <div class="detail-item"><span class="d-ico">&#128205;</span><div><b>${p.dist.toFixed(1)} km</b>hasta ${p.uni}</div></div>
         <div class="detail-item"><span class="d-ico">&#9203;</span><div><b>${Math.round(p.dist * 12)} min</b>caminando</div></div>
         <div class="detail-item"><span class="d-ico">&#128690;</span><div><b>${Math.round(p.dist * 4)} min</b>en bicicleta</div></div>
-        <div class="detail-item"><span class="d-ico">&#128663;</span><div><b>${Math.round(p.dist * 2)} min</b>en vehículo</div></div>
+        <div class="detail-item"><span class="d-ico">&#128663;</span><div><b>${Math.round(p.dist * 2)} min</b>en veh├¡culo</div></div>
       </div>
       <div class="owner-row">
         <div class="owner-av">${p.propAv}</div>
-        <div><b>${p.propietario}</b><div class="muted" style="font-size:.85rem">Propietario verificado · ${barrioName(p)}${barrioField(p, 'calle') ? ' · ' + barrioField(p, 'calle') : ''}${barrioField(p, 'referencia') ? ' · ' + barrioField(p, 'referencia') : ''}</div>${barrioField(p, 'googleMapsUrl') ? '<a href="' + barrioField(p, 'googleMapsUrl') + '" target="_blank" style="font-size:.82rem;color:var(--primary)">Ver en Google Maps</a>' : ''}</div>
+        <div><b>${p.propietario}</b><div class="muted" style="font-size:.85rem">Propietario verificado ┬À ${barrioName(p)}${barrioField(p, 'calle') ? ' ┬À ' + barrioField(p, 'calle') : ''}${barrioField(p, 'referencia') ? ' ┬À ' + barrioField(p, 'referencia') : ''}</div>${barrioField(p, 'googleMapsUrl') ? '<a href="' + barrioField(p, 'googleMapsUrl') + '" target="_blank" style="font-size:.82rem;color:var(--primary)">Ver en Google Maps</a>' : ''}</div>
       </div>
       <div class="contact-info">
         <h4 style="margin-bottom:8px;color:var(--primary)">Datos de contacto</h4>
@@ -326,7 +349,7 @@ function openDetail(id) {
           </a>
           <a href="tel:${p.tel}" class="contact-item contact-phone">
             <span class="contact-ico">&#128222;</span>
-            <div><b>Teléfono</b><div class="muted" style="font-size:.82rem">${p.tel}</div></div>
+            <div><b>Tel├®fono</b><div class="muted" style="font-size:.82rem">${p.tel}</div></div>
           </a>
         </div>
       </div>
@@ -356,7 +379,7 @@ $("#overlay").addEventListener("click", () => { $("#modal").classList.remove("sh
 function toggleCompare(id) {
   const i = compare.indexOf(id);
   if (i >= 0) { compare.splice(i, 1); toast("Quitado del comparador"); }
-  else if (compare.length >= 3) { toast("Máximo 3 propiedades para comparar"); return; }
+  else if (compare.length >= 3) { toast("M├íximo 3 propiedades para comparar"); return; }
   else { compare.push(id); toast("Agregado al comparador"); }
   renderCompareBar();
   renderFeatured();
@@ -369,14 +392,14 @@ function renderCompareBar() {
   bar.classList.toggle("show", compare.length > 0);
   list.innerHTML = "";
   compare.forEach(id => {
-    const p = PROPERTIES.find(x => x.id === id) || serverProperties.find(x => x.id === id);
+    const p = PROPERTIES.find(x => x.id === id);
     if (!p) return;
     const el = document.createElement("div");
     el.className = "compare-thumb";
-    if (Array.isArray(p.img) && p.img.length) {
-      el.innerHTML = `<img src="http://localhost:3001/${p.img[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:10px"><button data-rm="${id}">&times;</button>`;
+    if (Array.isArray(p.imgs) && p.imgs.length) {
+      el.innerHTML = `<img src="${p.imgs[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:10px"><button data-rm="${id}">&times;</button>`;
     } else {
-      el.style.background = IMGS[p.img] || "";
+      el.style.background = p.img;
       el.innerHTML = `<button data-rm="${id}">&times;</button>`;
     }
     el.title = p.nombre;
@@ -387,22 +410,22 @@ function renderCompareBar() {
   $("#compareBtn").disabled = compare.length < 2;
 }
 $("#compareBtn").addEventListener("click", () => {
-  const items = compare.map(id => PROPERTIES.find(x => x.id === id) || serverProperties.find(x => x.id === id)).filter(Boolean);
+  const items = compare.map(id => PROPERTIES.find(x => x.id === id));
   const head = `<tr><th></th>${items.map(p => `<th>${p.nombre}</th>`).join("")}</tr>`;
   const row = (label, fn) => `<tr><td>${label}</td>${items.map(p => `<td>${fn(p)}</td>`).join("")}</tr>`;
   $("#modalContent2").innerHTML = `
     <div class="detail-body">
       <h2 style="margin-bottom:6px">Comparar propiedades</h2>
-      <p class="muted" style="margin-bottom:12px">Compará hasta 3 alojamientos lado a lado.</p>
+      <p class="muted" style="margin-bottom:12px">Compar├í hasta 3 alojamientos lado a lado.</p>
       <table class="comp-table">
         ${head}
         ${row("Precio", p => `<b style="color:var(--primary)">${fmt(p.precio)}</b>`)}
-        ${row("Distancia", p => `${p.dist.toFixed(1)} km · ${Math.round(p.dist * 12)} min cam · ${Math.round(p.dist * 4)} min bici · ${Math.round(p.dist * 2)} min auto`)}
+        ${row("Distancia", p => `${p.dist.toFixed(1)} km ┬À ${Math.round(p.dist * 12)} min cam ┬À ${Math.round(p.dist * 4)} min bici ┬À ${Math.round(p.dist * 2)} min auto`)}
         ${row("Tipo", p => p.tipo)}
         ${row("Habitaciones", p => p.habs)}
-        ${row("WiFi", p => p.wifi ? '<span class="yes">Sí</span>' : '<span class="no">No</span>')}
-        ${row("Amoblado", p => p.amoblado ? '<span class="yes">Sí</span>' : '<span class="no">No</span>')}
-        ${row("Cochera", p => p.cochera ? '<span class="yes">Sí</span>' : '<span class="no">No</span>')}
+        ${row("WiFi", p => p.wifi ? '<span class="yes">S├¡</span>' : '<span class="no">No</span>')}
+        ${row("Amoblado", p => p.amoblado ? '<span class="yes">S├¡</span>' : '<span class="no">No</span>')}
+        ${row("Cochera", p => p.cochera ? '<span class="yes">S├¡</span>' : '<span class="no">No</span>')}
       </table>
       <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
         ${items.map(p => `<button class="btn btn-primary" data-view="${p.id}">Ver ${p.nombre.split(" ")[0]}</button>`).join("")}
@@ -435,7 +458,7 @@ function renderFletes(filter) {
       <h3>${f.nombre}</h3>
       <div class="prop-meta"><span>&#128666; ${f.tipo}</span><span class="flete-rating">&#9733; ${f.rating}</span></div>
       <div class="flete-cobertura">&#128205; Cobertura: ${f.cobertura}</div>
-      <div class="flete-badges"><span class="serv-tag hot">Disponible</span><span class="serv-tag">Respuesta rápida</span></div>
+      <div class="flete-badges"><span class="serv-tag hot">Disponible</span><span class="serv-tag">Respuesta r├ípida</span></div>
       <button class="btn btn-primary" data-chat="${f.id}" style="width:100%;justify-content:center">&#128172; Chatear ahora</button>`;
     div.querySelector("[data-chat]").addEventListener("click", () => initChatbot(f.id));
     g.appendChild(div);
@@ -456,18 +479,18 @@ $("#clearFletesSearch").addEventListener("click", () => {
 });
 
 /* ---------- Chatbot de Fletes ---------- */
-const CHATBOT_API = "http://localhost:3001/api";
+const CHATBOT_API = API_URL;
 let chatbotState = { step: 0, data: {}, flete: null };
 
 const CHATBOT_STEPS = [
-  { key: "nombre", question: "¡Hola! Soy el asistente de {flete}. ¿Cómo te llamás?", validate: v => v.trim().length > 0 ? null : "Por favor ingresá tu nombre." },
-  { key: "telefono", question: "¿Cuál es tu número de teléfono? (Ej: 3804123456)", validate: v => /^\+?[\d\s\-]{8,15}$/.test(v.trim()) ? null : "Ingresá un número de teléfono válido." },
-  { key: "email", question: "¿Tu email? (opcional, podés escribir 'skip' para saltar)", validate: () => null, optional: true },
-  { key: "origen", question: "¿De dónde te mudás? (ciudad/barrio)", validate: v => v.trim().length > 0 ? null : "Por favor indicá el lugar de origen." },
-  { key: "destino", question: "¿A dónde vas?", validate: v => v.trim().length > 0 ? null : "Por favor indicá el destino." },
-  { key: "tamano", question: "¿Qué tamaño es la mudanza?\n1 — 1 ambiente\n2 — 2-3 ambientes\n3 — Local/oficina\n4 — Grande (4+ ambientes)", validate: v => ["1","2","3","4","1 ambiente","2-3 ambientes","local","grande","1 amb","2 amb","local/oficina","4+"].some(o => v.toLowerCase().includes(o)) ? null : "Elegí una opción: 1, 2, 3 o 4." },
-  { key: "fecha", question: "¿Para qué fecha la necesitás?", validate: v => v.trim().length > 0 ? null : "Indicá una fecha." },
-  { key: "observaciones", question: "¿Alguna observación extra? (opcional, 'skip' para saltar)", validate: () => null, optional: true }
+  { key: "nombre", question: "┬íHola! Soy el asistente de {flete}. ┬┐C├│mo te llam├ís?", validate: v => v.trim().length > 0 ? null : "Por favor ingres├í tu nombre." },
+  { key: "telefono", question: "┬┐Cu├íl es tu n├║mero de tel├®fono? (Ej: 3804123456)", validate: v => /^\+?[\d\s\-]{8,15}$/.test(v.trim()) ? null : "Ingres├í un n├║mero de tel├®fono v├ílido." },
+  { key: "email", question: "┬┐Tu email? (opcional, pod├®s escribir 'skip' para saltar)", validate: () => null, optional: true },
+  { key: "origen", question: "┬┐De d├│nde te mud├ís? (ciudad/barrio)", validate: v => v.trim().length > 0 ? null : "Por favor indic├í el lugar de origen." },
+  { key: "destino", question: "┬┐A d├│nde vas?", validate: v => v.trim().length > 0 ? null : "Por favor indic├í el destino." },
+  { key: "tamano", question: "┬┐Qu├® tama├▒o es la mudanza?\n1 ÔÇö 1 ambiente\n2 ÔÇö 2-3 ambientes\n3 ÔÇö Local/oficina\n4 ÔÇö Grande (4+ ambientes)", validate: v => ["1","2","3","4","1 ambiente","2-3 ambientes","local","grande","1 amb","2 amb","local/oficina","4+"].some(o => v.toLowerCase().includes(o)) ? null : "Eleg├¡ una opci├│n: 1, 2, 3 o 4." },
+  { key: "fecha", question: "┬┐Para qu├® fecha la necesit├ís?", validate: v => v.trim().length > 0 ? null : "Indic├í una fecha." },
+  { key: "observaciones", question: "┬┐Alguna observaci├│n extra? (opcional, 'skip' para saltar)", validate: () => null, optional: true }
 ];
 
 function chatbotAddMessage(text, sender) {
@@ -539,7 +562,7 @@ function chatbotBuildWhatsAppMessage() {
   lines.push(
     `Origen: ${d.origen || ""}`,
     `Destino: ${d.destino || ""}`,
-    `Tamaño: ${d.tamano || ""}`,
+    `Tama├▒o: ${d.tamano || ""}`,
     `Fecha: ${d.fecha || ""}`
   );
   if (d.observaciones) lines.push(`Observaciones: ${d.observaciones}`);
@@ -547,7 +570,7 @@ function chatbotBuildWhatsAppMessage() {
 }
 
 async function chatbotFinish() {
-  const msg = "¡Perfecto! Te voy a enviar todos tus datos por WhatsApp. ¡Dale a enviar!";
+  const msg = "┬íPerfecto! Te voy a enviar todos tus datos por WhatsApp. ┬íDale a enviar!";
   chatbotShowTyping(true);
   setTimeout(async () => {
     chatbotShowTyping(false);
@@ -555,13 +578,13 @@ async function chatbotFinish() {
 
     setTimeout(() => {
       const summary = [
-        `📋 *Resumen de tu solicitud:*`,
+        `­ƒôï *Resumen de tu solicitud:*`,
         `Nombre: ${chatbotState.data.nombre}`,
         `Tel: ${chatbotState.data.telefono}`,
         chatbotState.data.email ? `Email: ${chatbotState.data.email}` : null,
         `Origen: ${chatbotState.data.origen}`,
         `Destino: ${chatbotState.data.destino}`,
-        `Tamaño: ${chatbotState.data.tamano}`,
+        `Tama├▒o: ${chatbotState.data.tamano}`,
         `Fecha: ${chatbotState.data.fecha}`,
         chatbotState.data.observaciones ? `Obs: ${chatbotState.data.observaciones}` : null
       ].filter(Boolean).join("\n");
@@ -599,6 +622,7 @@ async function chatbotFinish() {
 function initChatbot(fleteId) {
   const flete = FLETES.find(f => f.id === fleteId);
   if (!flete) return;
+  trackView(fleteId, null, fleteId);
 
   chatbotState = { step: 0, data: {}, flete };
   $("#chatbotSection").style.display = "";
@@ -646,18 +670,18 @@ function openQuoteModal() {
     <button class="modal-close" id="quoteModalClose">&times;</button>
     <div class="detail-body">
       <h2 style="margin-bottom:6px">Solicitar presupuesto de mudanza</h2>
-      <p class="muted" style="margin-bottom:16px">Completá los datos y los transportistas te contactarán.</p>
+      <p class="muted" style="margin-bottom:16px">Complet├í los datos y los transportistas te contactar├ín.</p>
       <form class="form" id="quoteForm">
         <div class="form-row">
           <label>Nombre<input type="text" placeholder="Tu nombre" required></label>
-          <label>Teléfono / WhatsApp<input type="tel" placeholder="+54 9 3804 ..." required></label>
+          <label>Tel├®fono / WhatsApp<input type="tel" placeholder="+54 9 3804 ..." required></label>
         </div>
         <div class="form-row">
-          <label>Dirección de origen<input type="text" placeholder="Ej: Centro, La Rioja" required></label>
-          <label>Dirección de destino<input type="text" placeholder="Ej: Zona UNLaR" required></label>
+          <label>Direcci├│n de origen<input type="text" placeholder="Ej: Centro, La Rioja" required></label>
+          <label>Direcci├│n de destino<input type="text" placeholder="Ej: Zona UNLaR" required></label>
         </div>
         <div class="form-row">
-          <label>Tamaño de la mudanza<select required><option value="">Seleccionar...</option><option value="pequeña">Pequena (1 ambiente)</option><option value="mediana">Mediana (2-3 ambientes)</option><option value="grande">Grande (4+ ambientes)</option></select></label>
+          <label>Tama├▒o de la mudanza<select required><option value="">Seleccionar...</option><option value="peque├▒a">Pequena (1 ambiente)</option><option value="mediana">Mediana (2-3 ambientes)</option><option value="grande">Grande (4+ ambientes)</option></select></label>
           <label>Fecha estimada<input type="date" required></label>
         </div>
         <label>Observaciones<textarea rows="3" placeholder="Ej: Horario preferido, accesos especiales..."></textarea></label>
@@ -685,7 +709,7 @@ function openQuoteModal() {
 
 $("#openQuoteForm").addEventListener("click", openQuoteModal);
 
-/* ---------- Búsqueda hero ---------- */
+/* ---------- B├║squeda hero ---------- */
 function renderQuickResults(list) {
   const g = $("#quickResultsGrid");
   g.innerHTML = "";
@@ -703,9 +727,8 @@ $("#heroSearch").addEventListener("submit", (e) => {
   const uni = $("#searchUni").value;
   const bud = +$("#searchBudget").value;
   const tipo = $("#searchType").value;
-  const allProps = [...PROPERTIES, ...serverProperties];
-  filteredProps = allProps.filter(p =>
-    (uni === "Cualquiera" || p.uni === uni) &&
+  filteredProps = PROPERTIES.filter(p =>
+    (!uni || p.uni === uni) &&
     (!bud || p.precio <= bud) &&
     (!tipo || p.tipo === tipo)
   );
@@ -747,18 +770,15 @@ function parseGoogleMapsUrl(url) {
   return null;
 }
 
-function haversine(lat1, lng1, lat2, lng2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
 function calcDistInfo(lat, lng) {
-  const dUnilar = haversine(lat, lng, UNLaR_COORDS[0], UNLaR_COORDS[1]);
-  const dUtn = haversine(lat, lng, UTN_COORDS[0], UTN_COORDS[1]);
-  return { dUnilar, dUtn };
+  function hav(lat1, lng1, lat2, lng2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+  return { dUnilar: hav(lat, lng, UNLaR_COORDS[0], UNLaR_COORDS[1]), dUtn: hav(lat, lng, UTN_COORDS[0], UTN_COORDS[1]) };
 }
 
 function initPublishMap() {
@@ -824,8 +844,8 @@ function handlePublishFiles(files) {
   const maxFiles = 10;
   const maxSize = 5 * 1024 * 1024;
   Array.from(files).forEach(file => {
-    if (publishImages.length >= maxFiles) { toast("Máximo 10 fotos"); return; }
-    if (!file.type.startsWith("image/")) { toast("Solo se aceptan imágenes"); return; }
+    if (publishImages.length >= maxFiles) { toast("M├íximo 10 fotos"); return; }
+    if (!file.type.startsWith("image/")) { toast("Solo se aceptan im├ígenes"); return; }
     if (file.size > maxSize) { toast(`${file.name} supera 5MB`); return; }
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -864,36 +884,18 @@ if (publishGmInput) {
   });
 }
 
-async function fetchPropiedades() {
-  try {
-    const res = await fetch("http://localhost:3001/api/propiedades");
-    if (!res.ok) return [];
-    return await res.json();
-  } catch { return []; }
-}
-
-let serverProperties = [];
-
-async function initServerProperties() {
-  serverProperties = await fetchPropiedades();
-  if (serverProperties.length) {
-    const allProps = [...PROPERTIES, ...serverProperties];
-    filteredProps = allProps;
-    renderCatalog(filteredProps);
-    renderFeatured();
-  }
-}
-
 $("#publishForm").addEventListener("submit", async (e) => {
   e.preventDefault();
+
   if (!publishLat || !publishLng) {
-    toast("Pegá la URL de Google Maps y verificá la ubicación en el mapa");
+    toast("Peg├í la URL de Google Maps y verific├í la ubicaci├│n en el mapa");
     return;
   }
   if (!publishImages.length) {
-    toast("Subí al menos 1 foto de la propiedad");
+    toast("Sub├¡ al menos 1 foto de la propiedad");
     return;
   }
+
   const titulo = document.getElementById("pubTitulo").value.trim();
   const precio = +document.getElementById("pubPrecio").value;
   const tipo = document.getElementById("pubTipo").value;
@@ -912,50 +914,67 @@ $("#publishForm").addEventListener("submit", async (e) => {
   const aire = document.getElementById("pubAire").checked;
   const parrilla = document.getElementById("pubParrilla").checked;
 
-  const servicios = [];
-  if (wifi) servicios.push("WiFi");
-  if (amoblado) servicios.push("Amoblado");
-  if (cochera) servicios.push("Cochera");
-  if (balcon) servicios.push("Balcón");
-  if (calefaccion) servicios.push("Calefacción");
-  if (aire) servicios.push("Aire acondicionado");
-  if (parrilla) servicios.push("Parrilla");
-
   const { dUnilar, dUtn } = calcDistInfo(publishLat, publishLng);
   const closestUni = dUnilar <= dUtn ? "UNLaR" : "UTN";
-  const dist = Math.round(Math.min(dUnilar, dUtn) * 10) / 10;
 
-  const formData = new FormData();
-  formData.append("titulo", titulo);
-  formData.append("precio", precio);
-  formData.append("tipo", tipo);
-  formData.append("barrio", barrio);
-  formData.append("calle", calle);
-  formData.append("referencia", referencia);
-  formData.append("googleMapsUrl", googleMapsUrl);
-  formData.append("lat", publishLat);
-  formData.append("lng", publishLng);
-  formData.append("dist", dist);
-  formData.append("uni", closestUni);
-  formData.append("habs", habs);
-  formData.append("banos", banos);
-  formData.append("desc", desc);
-  formData.append("wifi", wifi);
-  formData.append("amoblado", amoblado);
-  formData.append("cochera", cochera);
-  formData.append("servicios", JSON.stringify(servicios));
-
-  const fileInput = document.getElementById("publishFiles");
-  for (const file of fileInput.files) {
-    formData.append("fotos", file);
-  }
+  const submitBtn = document.getElementById("publishBtn");
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Publicando...";
 
   try {
-    const res = await fetch("http://localhost:3001/api/propiedades", {
+    const res = await fetch(`${API_URL}/alojamientos`, {
       method: "POST",
-      body: formData
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        proveedor_id: providerData ? providerData.id : 1,
+        titulo,
+        tipo,
+        precio_mensual: precio,
+        barrio,
+        calle,
+        referencia,
+        google_maps_url: googleMapsUrl,
+        habitaciones: habs,
+        banos: banos,
+        descripcion: desc,
+        latitud: publishLat,
+        longitud: publishLng,
+        wifi, amoblado, cochera, balcon, calefaccion, aire, parrilla,
+        universidad: closestUni
+      })
     });
-    if (!res.ok) throw new Error("Error del servidor");
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || "Error del servidor");
+    }
+
+    const result = await res.json();
+    const alojId = result.id;
+
+    // Subir im├ígenes si hay archivos seleccionados
+    const fileInput = document.getElementById("publishFiles");
+    if (fileInput && fileInput.files.length > 0) {
+      const formData = new FormData();
+      for (const file of fileInput.files) {
+        formData.append("fotos", file);
+      }
+
+      try {
+        const imgRes = await fetch(`${API_URL}/alojamientos/${alojId}/imagenes`, {
+          method: "POST",
+          body: formData
+        });
+
+        if (!imgRes.ok) {
+          const imgErr = await imgRes.json().catch(() => ({}));
+          toast(`Propiedad publicada, pero hubo un error al subir las im├ígenes: ${imgErr.error || "error desconocido"}`);
+        }
+      } catch (imgErr) {
+        toast("Propiedad publicada, pero no se pudieron subir las im├ígenes");
+      }
+    }
+
     toast("Propiedad publicada correctamente");
     e.target.reset();
     publishImages = [];
@@ -966,10 +985,18 @@ $("#publishForm").addEventListener("submit", async (e) => {
     const distInfo = document.getElementById("publishDistInfo");
     if (distInfo) distInfo.style.display = "none";
     if (publishMiniMap) { publishMiniMap.remove(); publishMiniMap = null; }
-    await initServerProperties();
+
+    // Refrescar datos desde Supabase
+    await loadData();
+    renderFeatured();
+    renderCatalog(filteredProps);
     goTo("alquileres");
   } catch (err) {
-    toast("Error al publicar. Intentá de nuevo.");
+    toast(`Error al publicar: ${err.message}`);
+    console.error(err);
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Publicar propiedad";
   }
 });
 
@@ -987,12 +1014,16 @@ function initCarousel() {
   }, INTERVAL);
 }
 
-renderFeatured();
-renderFletes();
-renderCatalog(PROPERTIES);
-$("#favCountTop").textContent = favorites.length;
-initCarousel();
-initServerProperties();
+async function init() {
+  await Promise.all([loadData(), loadReferences()]);
+  renderFeatured();
+  renderFletes();
+  renderCatalog(PROPERTIES);
+  $("#favCountTop").textContent = favorites.length;
+  initProviderSection();
+  initCarousel();
+}
+init();
 
 /* ---------- Proveedores ---------- */
 let providerLoggedIn = false;
@@ -1000,14 +1031,28 @@ let providerData = null;
 let providerListings = [];
 let providerTransportList = [];
 
-function initProviderSection() {
+async function initProviderSection() {
   const saved = JSON.parse(localStorage.getItem("forania_provider") || "null");
   if (saved) {
     providerData = saved;
     providerLoggedIn = true;
-    providerListings = JSON.parse(localStorage.getItem("forania_provider_listings") || "[]");
-    providerTransportList = JSON.parse(localStorage.getItem("forania_provider_transport") || "[]");
+    await loadProviderDataFromAPI();
     showProviderPanel();
+  }
+}
+
+async function loadProviderDataFromAPI() {
+  if (!providerData?.id) return;
+  try {
+    if (providerData.tipo === "transportista") {
+      const res = await fetch(`${API_URL}/proveedores/${providerData.id}/fletes`);
+      if (res.ok) providerTransportList = await res.json();
+    } else {
+      const res = await fetch(`${API_URL}/proveedores/${providerData.id}/alojamientos`);
+      if (res.ok) providerListings = await res.json();
+    }
+  } catch (err) {
+    console.error("Error cargando datos del proveedor:", err);
   }
 }
 
@@ -1051,14 +1096,14 @@ function renderProviderListings() {
     div.className = "card prop-card provider-listing-card";
     div.innerHTML = `
       <div class="prop-img" style="${bg(p.img || 'dep1')}">
-      <span class="prop-tag">${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)} · ${barrioName(p)}</span>
+        <span class="prop-tag">${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)} ┬À ${barrioName(p)}</span>
       </div>
       <div class="prop-body">
         <h3 class="prop-title">${p.nombre}</h3>
         <div class="prop-price">${fmt(p.precio)} <small>/ mes</small></div>
         <div class="prop-meta">
           <span>&#128205; ${barrioName(p)}</span>
-          <span>&#128716; ${p.habs} hab · ${p.banos} baño</span>
+          <span>&#128716; ${p.habs} hab ┬À ${p.banos} ba├▒o</span>
         </div>
         <div class="prop-actions">
           <button class="btn btn-ghost btn-sm provider-edit-btn" data-idx="${i}">Editar</button>
@@ -1099,10 +1144,19 @@ function renderProviderTransport() {
   g.querySelectorAll(".provider-delete-transport").forEach(b => b.addEventListener("click", () => deleteProviderTransport(+b.dataset.idx)));
 }
 
-function updateProviderStats() {
+async function updateProviderStats() {
   $("#provTotalProps").textContent = providerData.tipo === "transportista" ? providerTransportList.length : providerListings.length;
-  $("#provViews").textContent = Math.floor(Math.random() * 200) + 50;
-  $("#provContacts").textContent = Math.floor(Math.random() * 30) + 5;
+  try {
+    const res = await fetch(`${API_URL}/proveedores/${providerData.id}/stats`);
+    if (res.ok) {
+      const stats = await res.json();
+      $("#provViews").textContent = stats.vistas || 0;
+      $("#provContacts").textContent = stats.contactos || 0;
+      return;
+    }
+  } catch (e) {}
+  $("#provViews").textContent = 0;
+  $("#provContacts").textContent = 0;
 }
 
 function openProviderModal(title, formHTML) {
@@ -1116,37 +1170,39 @@ function closeProviderModal() {
   $("#providerOverlay").classList.remove("show");
 }
 
-function barrioName(p) {
-  if (!p || !p.barrio) return '';
-  return typeof p.barrio === 'string' ? p.barrio : (p.barrio.nombre || '');
-}
-
-function barrioField(p, field) {
-  if (!p || !p.barrio) return '';
-  if (typeof p.barrio === 'string') return '';
-  return p.barrio[field] || '';
-}
-
 function providerFormHTML(p) {
+  const tiposOpts = (REFS.tipos_alojamiento || [])
+    .map(t => `<option value="${t.nombre.toLowerCase()}" ${p && p.tipo === t.nombre.toLowerCase() ? 'selected' : ''}>${t.nombre}</option>`).join("");
+  const barriosOpts = (REFS.barrios || [])
+    .map(b => `<option value="${b.nombre}" ${p && p.barrio === b.nombre ? 'selected' : ''}>${b.nombre}</option>`).join("");
   return `
     <form class="form" id="providerPropForm">
       <div class="form-row">
-        <label>Título<input type="text" id="ppNombre" value="${p ? p.nombre : ''}" placeholder="Ej: Departamento moderno" required></label>
+        <label>T├¡tulo<input type="text" id="ppNombre" value="${p ? p.nombre : ''}" placeholder="Ej: Departamento moderno" required></label>
         <label>Precio ($/mes)<input type="number" id="ppPrecio" value="${p ? p.precio : ''}" placeholder="320000" required></label>
       </div>
       <div class="form-row">
-        <label>Tipo<select id="ppTipo"><option value="departamento" ${p && p.tipo === 'departamento' ? 'selected' : ''}>Departamento</option><option value="habitacion" ${p && p.tipo === 'habitacion' ? 'selected' : ''}>Habitación</option><option value="casa" ${p && p.tipo === 'casa' ? 'selected' : ''}>Casa</option></select></label>
-        <label>Barrio<input type="text" id="ppBarrio" value="${p ? barrioName(p) : ''}" placeholder="Ej: Centro" required></label>
-        <label>Calle (opcional)<input type="text" id="ppCalle" value="${p ? barrioField(p, 'calle') : ''}" placeholder="Ej: San Martín 450"></label>
+        <label>Tipo<select id="ppTipo"><option value="">Seleccionar...</option>${tiposOpts}</select></label>
+        <label>Barrio<select id="ppBarrio"><option value="">Seleccionar...</option>${barriosOpts}</select></label>
+      </div>
+      <div class="form-row">
+        <label>Calle (opcional)<input type="text" id="ppCalle" value="${p ? barrioField(p, 'calle') : ''}" placeholder="Ej: San Mart├¡n 450"></label>
         <label>Referencia (opcional)<input type="text" id="ppReferencia" value="${p ? barrioField(p, 'referencia') : ''}" placeholder="Ej: frente a la plaza"></label>
+      </div>
+      <div class="form-row">
         <label>URL Google Maps (opcional)<input type="text" id="ppGoogleMaps" value="${p ? barrioField(p, 'googleMapsUrl') : ''}" placeholder="https://maps.google.com/..."></label>
       </div>
       <div class="form-row">
         <label>Habitaciones<input type="number" id="ppHabs" min="1" value="${p ? p.habs : 1}"></label>
-        <label>Baños<input type="number" id="ppBanos" min="1" value="${p ? p.banos : 1}"></label>
+        <label>Ba├▒os<input type="number" id="ppBanos" min="1" value="${p ? p.banos : 1}"></label>
       </div>
-      <label>Descripción<textarea id="ppDesc" rows="3" placeholder="Describí tu propiedad...">${p ? p.desc : ''}</textarea></label>
-      <label>URL de foto (opcional)<input type="text" id="ppImg" placeholder="URL de imagen..." value="${p ? p.img : ''}"></label>
+      <label>Descripci├│n<textarea id="ppDesc" rows="3" placeholder="Describ├¡ tu propiedad...">${p ? p.desc : ''}</textarea></label>
+      <label>Universidad
+        <select id="ppUni">
+          <option value="">Seleccionar...</option>
+          ${(REFS.universidades || []).map(u => `<option value="${u.nombre}" ${p && p.uni === u.nombre ? 'selected' : ''}>${u.nombre}</option>`).join("")}
+        </select>
+      </label>
       <div class="filter-group checks">
         <label><input type="checkbox" id="ppWifi" ${p && p.wifi ? 'checked' : ''}> WiFi</label>
         <label><input type="checkbox" id="ppAmoblado" ${p && p.amoblado ? 'checked' : ''}> Amoblado</label>
@@ -1157,11 +1213,13 @@ function providerFormHTML(p) {
 }
 
 function transportFormHTML(t) {
+  const vehiculosOpts = (REFS.tipos_vehiculo || [])
+    .map(v => `<option value="${v.nombre}" ${t && t.tipo === v.nombre ? 'selected' : ''}>${v.nombre}</option>`).join("");
   return `
     <form class="form" id="providerTransForm">
       <label>Nombre del servicio<input type="text" id="ptNombre" value="${t ? t.nombre : ''}" placeholder="Ej: Mudanzas Express" required></label>
       <div class="form-row">
-        <label>Tipo de vehículo<input type="text" id="ptTipo" value="${t ? t.tipo : ''}" placeholder="Ej: Camión mediano" required></label>
+        <label>Tipo de veh├¡culo<select id="ptTipo" required><option value="">Seleccionar...</option>${vehiculosOpts}</select></label>
         <label>Zona de cobertura<input type="text" id="ptCobertura" value="${t ? t.cobertura : ''}" placeholder="Ej: Toda La Rioja" required></label>
       </div>
       <button type="submit" class="btn btn-primary btn-lg">${t ? 'Guardar cambios' : 'Registrar servicio'}</button>
@@ -1170,154 +1228,214 @@ function transportFormHTML(t) {
 
 function saveProviderData() {
   localStorage.setItem("forania_provider", JSON.stringify(providerData));
-  localStorage.setItem("forania_provider_listings", JSON.stringify(providerListings));
-  localStorage.setItem("forania_provider_transport", JSON.stringify(providerTransportList));
 }
 
-function addProviderListing() {
+async function addProviderListing() {
   openProviderModal("Nueva propiedad", providerFormHTML(null));
-  $("#providerPropForm").addEventListener("submit", (e) => {
+  $("#providerPropForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const barrioVal = $("#ppBarrio").value.trim();
-    const calleVal = $("#ppCalle").value.trim();
-    const refVal = $("#ppReferencia").value.trim();
-    const gmVal = $("#ppGoogleMaps").value.trim();
-    const barrioObj = { nombre: barrioVal };
-    if (calleVal) barrioObj.calle = calleVal;
-    if (refVal) barrioObj.referencia = refVal;
-    if (gmVal) barrioObj.googleMapsUrl = gmVal;
-    const newProp = {
-      id: Date.now(),
-      nombre: $("#ppNombre").value,
-      tipo: $("#ppTipo").value,
-      precio: +$("#ppPrecio").value,
-      barrio: barrioObj,
-      dist: Math.round((Math.random() * 4 + 0.5) * 10) / 10,
-      uni: barrioVal.includes("UNLaR") ? "UNLaR" : "UTN",
-      habs: +$("#ppHabs").value,
+      const payload = {
+        proveedor_id: providerData.id,
+        titulo: $("#ppNombre").value,
+        tipo: $("#ppTipo").value,
+        precio_mensual: +$("#ppPrecio").value,
+        barrio: $("#ppBarrio").value,
+        calle: $("#ppCalle").value.trim(),
+        referencia: $("#ppReferencia").value.trim(),
+        googleMapsUrl: $("#ppGoogleMaps").value.trim(),
+        habitaciones: +$("#ppHabs").value,
       banos: +$("#ppBanos").value,
+      descripcion: $("#ppDesc").value,
       wifi: $("#ppWifi").checked,
       amoblado: $("#ppAmoblado").checked,
       cochera: $("#ppCochera").checked,
-      servicios: [],
-      img: $("#ppImg").value || "dep1",
-      propietario: providerData.nombre,
-      propAv: providerData.nombre.charAt(0),
-      tel: providerData.tel || "",
-      email: providerData.email || "",
-      whatsapp: providerData.whatsapp || "",
-      desc: $("#ppDesc").value
+      universidad: $("#ppUni").value
     };
-    if (newProp.wifi) newProp.servicios.push("WiFi");
-    if (newProp.amoblado) newProp.servicios.push("Amoblado");
-    if (newProp.cochera) newProp.servicios.push("Cochera");
-    providerListings.push(newProp);
-    saveProviderData();
-    renderProviderListings();
-    updateProviderStats();
-    closeProviderModal();
-    toast("Propiedad publicada correctamente");
+    try {
+      const res = await fetch(`${API_URL}/alojamientos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error("Error al crear");
+      await loadProviderDataFromAPI();
+      renderProviderListings();
+      updateProviderStats();
+      closeProviderModal();
+      toast("Propiedad publicada correctamente");
+    } catch (err) {
+      toast("Error al publicar propiedad");
+      console.error(err);
+    }
   });
 }
 
-function editProviderListing(idx) {
+async function editProviderListing(idx) {
   const p = providerListings[idx];
   openProviderModal("Editar propiedad", providerFormHTML(p));
-  $("#providerPropForm").addEventListener("submit", (e) => {
+  $("#providerPropForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    p.nombre = $("#ppNombre").value;
-    p.tipo = $("#ppTipo").value;
-    p.precio = +$("#ppPrecio").value;
-    const barrioVal = $("#ppBarrio").value.trim();
-    const calleVal = $("#ppCalle").value.trim();
-    const refVal = $("#ppReferencia").value.trim();
-    const gmVal = $("#ppGoogleMaps").value.trim();
-    p.barrio = { nombre: barrioVal };
-    if (calleVal) p.barrio.calle = calleVal;
-    if (refVal) p.barrio.referencia = refVal;
-    if (gmVal) p.barrio.googleMapsUrl = gmVal;
-    p.habs = +$("#ppHabs").value;
-    p.banos = +$("#ppBanos").value;
-    p.wifi = $("#ppWifi").checked;
-    p.amoblado = $("#ppAmoblado").checked;
-    p.cochera = $("#ppCochera").checked;
-    p.img = $("#ppImg").value || p.img;
-    p.desc = $("#ppDesc").value;
-    p.servicios = [];
-    if (p.wifi) p.servicios.push("WiFi");
-    if (p.amoblado) p.servicios.push("Amoblado");
-    if (p.cochera) p.servicios.push("Cochera");
-    saveProviderData();
+    const payload = {
+      titulo: $("#ppNombre").value,
+      tipo: $("#ppTipo").value,
+      precio_mensual: +$("#ppPrecio").value,
+      barrio: $("#ppBarrio").value,
+      calle: $("#ppCalle").value.trim(),
+      referencia: $("#ppReferencia").value.trim(),
+      googleMapsUrl: $("#ppGoogleMaps").value.trim(),
+      habitaciones: +$("#ppHabs").value,
+      banos: +$("#ppBanos").value,
+      descripcion: $("#ppDesc").value,
+      wifi: $("#ppWifi").checked,
+      amoblado: $("#ppAmoblado").checked,
+      cochera: $("#ppCochera").checked,
+      universidad: $("#ppUni").value
+    };
+    try {
+      const res = await fetch(`${API_URL}/alojamientos/${p.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error("Error al actualizar");
+      await loadProviderDataFromAPI();
+      renderProviderListings();
+      closeProviderModal();
+      toast("Propiedad actualizada");
+    } catch (err) {
+      toast("Error al actualizar propiedad");
+      console.error(err);
+    }
+  });
+}
+
+async function deleteProviderListing(idx) {
+  const p = providerListings[idx];
+  if (!confirm("┬┐Eliminar esta propiedad?")) return;
+  try {
+    await fetch(`${API_URL}/alojamientos/${p.id}`, { method: "DELETE" });
+    await loadProviderDataFromAPI();
     renderProviderListings();
-    closeProviderModal();
-    toast("Propiedad actualizada");
-  });
-}
-
-function deleteProviderListing(idx) {
-  providerListings.splice(idx, 1);
-  saveProviderData();
-  renderProviderListings();
-  updateProviderStats();
-  toast("Propiedad eliminada");
-}
-
-function addProviderTransport() {
-  openProviderModal("Nuevo servicio de transporte", transportFormHTML(null));
-  $("#providerTransForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    providerTransportList.push({
-      id: Date.now(),
-      nombre: $("#ptNombre").value,
-      tipo: $("#ptTipo").value,
-      cobertura: $("#ptCobertura").value,
-      rating: 0,
-      img: "linear-gradient(135deg,#f97316,#7c2d12)",
-      emoji: "&#128666;"
-    });
-    saveProviderData();
-    renderProviderTransport();
     updateProviderStats();
-    closeProviderModal();
-    toast("Servicio registrado correctamente");
+    toast("Propiedad eliminada");
+  } catch (err) {
+    toast("Error al eliminar propiedad");
+    console.error(err);
+  }
+}
+
+async function addProviderTransport() {
+  openProviderModal("Nuevo servicio de transporte", transportFormHTML(null));
+  $("#providerTransForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const payload = {
+      proveedor_id: providerData.id,
+      nombre_comercial: $("#ptNombre").value,
+      tipo_vehiculo: $("#ptTipo").value,
+      cobertura: $("#ptCobertura").value,
+      telefono: providerData.tel || "",
+      email: providerData.email || "",
+      whatsapp: providerData.whatsapp || ""
+    };
+    try {
+      const res = await fetch(`${API_URL}/fletes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error("Error al crear");
+      await loadProviderDataFromAPI();
+      renderProviderTransport();
+      updateProviderStats();
+      closeProviderModal();
+      toast("Servicio registrado correctamente");
+    } catch (err) {
+      toast("Error al registrar servicio");
+      console.error(err);
+    }
   });
 }
 
-function editProviderTransport(idx) {
+async function editProviderTransport(idx) {
   const t = providerTransportList[idx];
   openProviderModal("Editar servicio", transportFormHTML(t));
-  $("#providerTransForm").addEventListener("submit", (e) => {
+  $("#providerTransForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    t.nombre = $("#ptNombre").value;
-    t.tipo = $("#ptTipo").value;
-    t.cobertura = $("#ptCobertura").value;
-    saveProviderData();
-    renderProviderTransport();
-    closeProviderModal();
-    toast("Servicio actualizado");
+    const payload = {
+      nombre_comercial: $("#ptNombre").value,
+      tipo_vehiculo: $("#ptTipo").value,
+      cobertura: $("#ptCobertura").value,
+      telefono: providerData.tel || "",
+      email: providerData.email || "",
+      whatsapp: providerData.whatsapp || ""
+    };
+    try {
+      const res = await fetch(`${API_URL}/fletes/${t.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error("Error al actualizar");
+      await loadProviderDataFromAPI();
+      renderProviderTransport();
+      closeProviderModal();
+      toast("Servicio actualizado");
+    } catch (err) {
+      toast("Error al actualizar servicio");
+      console.error(err);
+    }
   });
 }
 
-function deleteProviderTransport(idx) {
-  providerTransportList.splice(idx, 1);
-  saveProviderData();
-  renderProviderTransport();
-  updateProviderStats();
-  toast("Servicio eliminado");
+async function deleteProviderTransport(idx) {
+  const t = providerTransportList[idx];
+  if (!confirm("┬┐Eliminar este servicio?")) return;
+  try {
+    await fetch(`${API_URL}/fletes/${t.id}`, { method: "DELETE" });
+    await loadProviderDataFromAPI();
+    renderProviderTransport();
+    updateProviderStats();
+    toast("Servicio eliminado");
+  } catch (err) {
+    toast("Error al eliminar servicio");
+    console.error(err);
+  }
 }
 
-$("#providerLoginForm").addEventListener("submit", (e) => {
+$("#providerLoginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const form = e.target;
   const nombre = form.querySelector('input[type="text"]').value;
   const tipo = $("#providerType").value;
   const email = form.querySelector('input[type="email"]').value;
   const tel = form.querySelector('input[type="tel"]').value;
-  if (!tipo) { toast("Seleccioná un tipo de proveedor"); return; }
-  providerData = { nombre, tipo, email, tel, whatsapp: tel.replace(/\s/g, "").replace("+", "") };
-  providerLoggedIn = true;
-  showProviderPanel();
-  toast(`Bienvenido, ${nombre}`);
+  if (!tipo) { toast("Seleccion├í un tipo de proveedor"); return; }
+
+  try {
+    const res = await fetch(`${API_URL}/proveedores/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nombre, tipo, email, telefono: tel })
+    });
+    if (!res.ok) throw new Error("Error al iniciar sesi├│n");
+    const prov = await res.json();
+    providerData = {
+      id: prov.id,
+      nombre: prov.nombre_comercial,
+      tipo,
+      email: prov.email,
+      tel: prov.telefono,
+      whatsapp: prov.whatsapp || tel.replace(/\s/g, "").replace("+", "")
+    };
+    providerLoggedIn = true;
+    saveProviderData();
+    await loadProviderDataFromAPI();
+    showProviderPanel();
+    toast(`Bienvenido, ${nombre}`);
+  } catch (err) {
+    toast("Error al iniciar sesi├│n");
+    console.error(err);
+  }
 });
 
 $("#provLogout").addEventListener("click", () => {
@@ -1326,15 +1444,11 @@ $("#provLogout").addEventListener("click", () => {
   providerListings = [];
   providerTransportList = [];
   localStorage.removeItem("forania_provider");
-  localStorage.removeItem("forania_provider_listings");
-  localStorage.removeItem("forania_provider_transport");
   showProviderLogin();
-  toast("Sesión cerrada");
+  toast("Sesi├│n cerrada");
 });
 
 $("#addNewProp").addEventListener("click", addProviderListing);
 $("#addNewTransport").addEventListener("click", addProviderTransport);
 $("#providerModalClose").addEventListener("click", closeProviderModal);
 $("#providerOverlay").addEventListener("click", closeProviderModal);
-
-initProviderSection();
