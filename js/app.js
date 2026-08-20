@@ -19,18 +19,18 @@ const IMGS = {
 const bg = (img) => img ? `background:${img}` : "background:#a78bfa";
 
 const PROPERTIES = [
-  { id:1, nombre:"Departamento moderno en Centro", tipo:"departamento", precio:320000, barrio:"Centro", dist:1.2, uni:"UNLaR", habs:2, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Aire acondicionado","Mesa de estudio"], img:"dep1", propietario:"María González", propAv:"MG", tel:"+54 9 3804 123456", email:"maria.gonzalez@email.com", whatsapp:"+5493804123456", desc:"Departamento luminoso en pleno centro, a pasos de la peatonal y a minutos de la UNLaR. Ideal para estudiantes que buscan comodidad y cercanía." },
-  { id:2, nombre:"Monoambiente Zona UNLaR", tipo:"departamento", precio:220000, barrio:"Zona UNLaR", dist:0.4, uni:"UNLaR", habs:1, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Mesa de estudio","Lavadora"], img:"dep2", propietario:"Carlos Sosa", propAv:"CS", tel:"+54 9 3804 234567", email:"carlos.sosa@email.com", whatsapp:"+5493804234567", desc:"Monoambiente amoblado a 4 cuadras de la UNLaR. Podés ir caminando y olvidarte del bondi." },
-  { id:3, nombre:"Casa con patio en San Vicente", tipo:"casa", precio:400000, barrio:"San Vicente", dist:3.5, uni:"UNLaR", habs:3, banos:2, wifi:true, amoblado:false, cochera:true, servicios:["Cochera","Patio","WiFi","Calefacción"], img:"dep3", propietario:"Laura Fernández", propAv:"LF", tel:"+54 9 3804 345678", email:"laura.fernandez@email.com", whatsapp:"+5493804345678", desc:"Casa amplia con patio y cochera, ideal para compartir entre 3 estudiantes. Zona tranquila y segura." },
-  { id:4, nombre:"Habitación en Coquimbito", tipo:"habitacion", precio:150000, barrio:"Coquimbito", dist:2.1, uni:"UTN", habs:1, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Gastos incluidos"], img:"dep4", propietario:"Jorge Medina", propAv:"JM", tel:"+54 9 3804 456789", email:"jorge.medina@email.com", whatsapp:"+5493804456789", desc:"Habitación individual en casa compartida con otros estudiantes. Gastos y wifi incluidos en el precio." },
-  { id:5, nombre:"Departamento Santa Justina", tipo:"departamento", precio:280000, barrio:"Santa Justina", dist:5.2, uni:"UTN", habs:2, banos:1, wifi:true, amoblado:false, cochera:true, servicios:["Cochera","WiFi","Balcón"], img:"dep5", propietario:"Ana Ríos", propAv:"AR", tel:"+54 9 3804 567890", email:"ana.rios@email.com", whatsapp:"+5493804567890", desc:"Dúplex de 2 dormitorios con balcón y cochera cubierta. Excelente relación precio-superficie." },
-  { id:6, nombre:"Loft amueblado Centro", tipo:"departamento", precio:350000, barrio:"Centro", dist:1.5, uni:"UNLaR", habs:1, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Smart TV","Microondas"], img:"dep6", propietario:"Diego Luna", propAv:"DL", tel:"+54 9 3804 678901", email:"diego.luna@email.com", whatsapp:"+5493804678901", desc:"Loft moderno totalmente equipado. Pensado para estudiantes que quieren llegar y mudarse el mismo día." },
-  { id:7, nombre:"Departamento económico Centro", tipo:"departamento", precio:180000, barrio:"Centro", dist:1.0, uni:"UNLaR", habs:1, banos:1, wifi:false, amoblado:false, cochera:false, servicios:["Balcón","Mesa de estudio"], img:"dep7", propietario:"Raúl Castro", propAv:"RC", tel:"+54 9 3804 789012", email:"raul.castro@email.com", whatsapp:"+5493804789012", desc:"Departamento accesible para presupuestos ajustados. A 10 minutos caminando de la facultad." },
-  { id:8, nombre:"Casa compartida Zona UNLaR", tipo:"casa", precio:200000, barrio:"Zona UNLaR", dist:0.8, uni:"UNLaR", habs:3, banos:2, wifi:true, amoblado:true, cochera:true, servicios:["WiFi","Amoblado","Cochera","Patio"], img:"dep8", propietario:"Silvia Torres", propAv:"ST", tel:"+54 9 3804 890123", email:"silvia.torres@email.com", whatsapp:"+5493804890123", desc:"Casa amplia a 2 cuadras de la UNLaR, perfecta para un grupo de amigos que quiere compartir." },
-  { id:9, nombre:"Habitación premium San Vicente", tipo:"habitacion", precio:190000, barrio:"San Vicente", dist:3.0, uni:"UNLaR", habs:1, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Baño privado","Aire acondicionado"], img:"dep9", propietario:"Hugo Aguirre", propAv:"HA", tel:"+54 9 3804 901234", email:"hugo.aguirre@email.com", whatsapp:"+5493804901234", desc:"Habitación con baño privado y aire acondicionado en casa moderna. Muy cómoda para estudiar." },
-  { id:10, nombre:"Departamento dúplex Coquimbito", tipo:"departamento", precio:380000, barrio:"Coquimbito", dist:2.8, uni:"UTN", habs:2, banos:2, wifi:true, amoblado:true, cochera:true, servicios:["WiFi","Amoblado","Cochera","Terraza"], img:"dep10", propietario:"Marta López", propAv:"ML", tel:"+54 9 3804 012345", email:"marta.lopez@email.com", whatsapp:"+5493804012345", desc:"Dúplex con terraza propia y cochera doble. Uno de los alojamientos mejor puntuados del barrio." },
-  { id:11, nombre:"Estudio minimalista Centro", tipo:"departamento", precio:260000, barrio:"Centro", dist:1.3, uni:"UNLaR", habs:1, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Mesa de estudio","Ascensor"], img:"dep11", propietario:"Pedro Villafañe", propAv:"PV", tel:"+54 9 3804 112233", email:"pedro.villafane@email.com", whatsapp:"+5493804112233", desc:"Estudio moderno con diseño minimalista en edificio con ascensor. A 5 cuadras de la UNLaR." },
-  { id:12, nombre:"Casa con cochera Santa Justina", tipo:"casa", precio:450000, barrio:"Santa Justina", dist:4.6, uni:"UTN", habs:4, banos:2, wifi:true, amoblado:false, cochera:true, servicios:["Cochera","Jardín","WiFi","Parrilla"], img:"dep12", propietario:"Nora Campos", propAv:"NC", tel:"+54 9 3804 445566", email:"nora.campos@email.com", whatsapp:"+5493804445566", desc:"Casa familiar espaciosa con jardín y parrilla. Muy buena para grupos grandes de estudiantes." }
+  { id:1, nombre:"Departamento moderno en Centro", tipo:"departamento", precio:320000, barrio:"Centro", dist:3.0, uni:"UNLaR", habs:2, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Aire acondicionado","Mesa de estudio"], img:"dep1", propietario:"María González", propAv:"MG", tel:"+54 9 3804 123456", email:"maria.gonzalez@email.com", whatsapp:"+5493804123456", desc:"Departamento luminoso en pleno centro, a pasos de la peatonal y a minutos de la UNLaR. Ideal para estudiantes que buscan comodidad y cercanía.", lat:-29.4126, lng:-66.8445 },
+  { id:2, nombre:"Monoambiente Zona UNLaR", tipo:"departamento", precio:220000, barrio:"Zona UNLaR", dist:1.5, uni:"UNLaR", habs:1, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Mesa de estudio","Lavadora"], img:"dep2", propietario:"Carlos Sosa", propAv:"CS", tel:"+54 9 3804 234567", email:"carlos.sosa@email.com", whatsapp:"+5493804234567", desc:"Monoambiente amoblado a 4 cuadras de la UNLaR. Podés ir caminando y olvidarte del bondi.", lat:-29.4223, lng:-66.8822 },
+  { id:3, nombre:"Casa con patio en San Vicente", tipo:"casa", precio:400000, barrio:"San Vicente", dist:3.0, uni:"UNLaR", habs:3, banos:2, wifi:true, amoblado:false, cochera:true, servicios:["Cochera","Patio","WiFi","Calefacción"], img:"dep3", propietario:"Laura Fernández", propAv:"LF", tel:"+54 9 3804 345678", email:"laura.fernandez@email.com", whatsapp:"+5493804345678", desc:"Casa amplia con patio y cochera, ideal para compartir entre 3 estudiantes. Zona tranquila y segura.", lat:-29.405691904492766, lng:-66.84856910945868 },
+  { id:4, nombre:"Habitación en Coquimbito", tipo:"habitacion", precio:150000, barrio:"Coquimbito", dist:1.2, uni:"UTN", habs:1, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Gastos incluidos"], img:"dep4", propietario:"Jorge Medina", propAv:"JM", tel:"+54 9 3804 456789", email:"jorge.medina@email.com", whatsapp:"+5493804456789", desc:"Habitación individual en casa compartida con otros estudiantes. Gastos y wifi incluidos en el precio.", lat:-29.416394976505227, lng:-66.83698377723476 },
+  { id:5, nombre:"Departamento Santa Justina", tipo:"departamento", precio:280000, barrio:"Santa Justina", dist:4.3, uni:"UTN", habs:2, banos:1, wifi:true, amoblado:false, cochera:true, servicios:["Cochera","WiFi","Balcón"], img:"dep5", propietario:"Ana Ríos", propAv:"AR", tel:"+54 9 3804 567890", email:"ana.rios@email.com", whatsapp:"+5493804567890", desc:"Dúplex de 2 dormitorios con balcón y cochera cubierta. Excelente relación precio-superficie.", lat:-29.436423918757917, lng:-66.87366214101084 },
+  { id:6, nombre:"Loft amueblado Centro", tipo:"departamento", precio:350000, barrio:"Centro", dist:3.4, uni:"UNLaR", habs:1, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Smart TV","Microondas"], img:"dep6", propietario:"Diego Luna", propAv:"DL", tel:"+54 9 3804 678901", email:"diego.luna@email.com", whatsapp:"+5493804678901", desc:"Loft moderno totalmente equipado. Pensado para estudiantes que quieren llegar y mudarse el mismo día.", lat:-29.41197033435157, lng:-66.8383682365972 },
+  { id:7, nombre:"Departamento económico Centro", tipo:"departamento", precio:180000, barrio:"Centro", dist:2.5, uni:"UNLaR", habs:1, banos:1, wifi:false, amoblado:false, cochera:false, servicios:["Balcón","Mesa de estudio"], img:"dep7", propietario:"Raúl Castro", propAv:"RC", tel:"+54 9 3804 789012", email:"raul.castro@email.com", whatsapp:"+5493804789012", desc:"Departamento accesible para presupuestos ajustados. A 10 minutos caminando de la facultad.", lat:-29.4293, lng:-66.8940 },
+  { id:8, nombre:"Casa compartida Zona UNLaR", tipo:"casa", precio:200000, barrio:"Zona UNLaR", dist:2.0, uni:"UNLaR", habs:3, banos:2, wifi:true, amoblado:true, cochera:true, servicios:["WiFi","Amoblado","Cochera","Patio"], img:"dep8", propietario:"Silvia Torres", propAv:"ST", tel:"+54 9 3804 890123", email:"silvia.torres@email.com", whatsapp:"+5493804890123", desc:"Casa amplia a 2 cuadras de la UNLaR, perfecta para un grupo de amigos que quiere compartir.", lat:-29.4170, lng:-66.8575 },
+  { id:9, nombre:"Habitación premium San Vicente", tipo:"habitacion", precio:190000, barrio:"San Vicente", dist:4.0, uni:"UNLaR", habs:1, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Baño privado","Aire acondicionado"], img:"dep9", propietario:"Hugo Aguirre", propAv:"HA", tel:"+54 9 3804 901234", email:"hugo.aguirre@email.com", whatsapp:"+5493804901234", desc:"Habitación con baño privado y aire acondicionado en casa moderna. Muy cómoda para estudiar.", lat:-29.4660, lng:-66.8520 },
+  { id:10, nombre:"Departamento dúplex Coquimbito", tipo:"departamento", precio:380000, barrio:"Coquimbito", dist:4.0, uni:"UTN", habs:2, banos:2, wifi:true, amoblado:true, cochera:true, servicios:["WiFi","Amoblado","Cochera","Terraza"], img:"dep10", propietario:"Marta López", propAv:"ML", tel:"+54 9 3804 012345", email:"marta.lopez@email.com", whatsapp:"+5493804012345", desc:"Dúplex con terraza propia y cochera doble. Uno de los alojamientos mejor puntuados del barrio.", lat:-29.4377, lng:-66.8598 },
+  { id:11, nombre:"Estudio minimalista Centro", tipo:"departamento", precio:260000, barrio:"Centro", dist:3.2, uni:"UNLaR", habs:1, banos:1, wifi:true, amoblado:true, cochera:false, servicios:["WiFi","Amoblado","Mesa de estudio","Ascensor"], img:"dep11", propietario:"Pedro Villafañe", propAv:"PV", tel:"+54 9 3804 112233", email:"pedro.villafane@email.com", whatsapp:"+5493804112233", desc:"Estudio moderno con diseño minimalista en edificio con ascensor. A 5 cuadras de la UNLaR.", lat:-29.416158886319486, lng:-66.83690480912735 },
+  { id:12, nombre:"Casa con cochera Santa Justina", tipo:"casa", precio:450000, barrio:"Santa Justina", dist:3.9, uni:"UTN", habs:4, banos:2, wifi:true, amoblado:false, cochera:true, servicios:["Cochera","Jardín","WiFi","Parrilla"], img:"dep12", propietario:"Nora Campos", propAv:"NC", tel:"+54 9 3804 445566", email:"nora.campos@email.com", whatsapp:"+5493804445566", desc:"Casa familiar espaciosa con jardín y parrilla. Muy buena para grupos grandes de estudiantes.", lat:-29.43425699193456, lng:-66.86681127404425 }
 ];
 
 const FLETES = [
@@ -64,7 +64,11 @@ function goTo(page) {
   $$(".nav-link").forEach(l => l.classList.toggle("active", l.dataset.nav === page));
   document.body.classList.remove("nav-open");
   window.scrollTo({ top: 0, behavior: "smooth" });
-  if (page === "alquileres") renderCatalog(filteredProps);
+  if (page === "alquileres") {
+    const allProps = [...PROPERTIES, ...serverProperties];
+    filteredProps = allProps;
+    renderCatalog(filteredProps);
+  }
   if (page === "favoritos") renderFavorites();
   if (page === "perfil") { $("#profFavs").textContent = favorites.length; $("#profComp").textContent = compare.length; }
 }
@@ -76,15 +80,24 @@ $$("[data-nav]").forEach(el => el.addEventListener("click", (e) => {
 $("#hamburger").addEventListener("click", () => document.body.classList.toggle("nav-open"));
 
 /* ---------- Tarjetas ---------- */
+function propImgHTML(p) {
+  if (Array.isArray(p.img) && p.img.length) {
+    return `<img src="http://localhost:3001/${p.img[0]}" alt="${p.nombre}" style="width:100%;height:100%;object-fit:cover">`;
+  }
+  return "";
+}
+
 function propCard(p, grid) {
   const fav = favorites.includes(p.id);
   const servs = p.servicios.slice(0, 2);
   const div = document.createElement("article");
   div.className = "card prop-card";
+  const hasRealImg = Array.isArray(p.img) && p.img.length;
   div.innerHTML = `
-    <div class="prop-img" style="${bg(p.img)}">
+    <div class="prop-img" style="${hasRealImg ? '' : bg(p.img)}">
+      ${hasRealImg ? propImgHTML(p) : ''}
       <button class="prop-fav ${fav ? 'on' : ''}" data-fav="${p.id}">${fav ? "&#9829;" : "&#9825;"}</button>
-      <span class="prop-tag">${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)} · ${p.barrio}</span>
+      <span class="prop-tag">${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)} · ${barrioName(p)}</span>
     </div>
     <div class="prop-body">
       <h3 class="prop-title">${p.nombre}</h3>
@@ -139,7 +152,8 @@ function updateCardStates() {
 }
 function renderFavorites() {
   const g = $("#favGrid");
-  const list = PROPERTIES.filter(p => favorites.includes(p.id));
+  const allProps = [...PROPERTIES, ...serverProperties];
+  const list = allProps.filter(p => favorites.includes(p.id));
   g.innerHTML = "";
   $("#favMsg").textContent = list.length ? `${list.length} propiedades guardadas` : "Todavía no tenés favoritos. Tocá el corazón en cualquier propiedad.";
   list.forEach(p => propCard(p, g));
@@ -156,11 +170,12 @@ function applyFilters() {
   const amob = $("#fAmoblado").checked;
   const wifi = $("#fWifi").checked;
   const coch = $("#fCochera").checked;
-  filteredProps = PROPERTIES.filter(p =>
+  const allProps = [...PROPERTIES, ...serverProperties];
+  filteredProps = allProps.filter(p =>
     p.precio <= maxP &&
     (!tipo || p.tipo === tipo) &&
     (!uni || p.uni === uni) &&
-    (!barrio || p.barrio === barrio) &&
+    (!barrio || barrioName(p).toLowerCase().includes(barrio.toLowerCase())) &&
     p.dist <= maxD &&
     (!amob || p.amoblado) &&
     (!wifi || p.wifi) &&
@@ -173,7 +188,7 @@ function clearFilters() {
   $("#fPrice").value = 600000; $("#fPriceLabel").textContent = "$600.000";
   $("#fType").value = ""; $("#fUni").value = ""; $("#fBarrio").value = ""; $("#fDist").value = "99";
   $("#fAmoblado").checked = false; $("#fWifi").checked = false; $("#fCochera").checked = false;
-  filteredProps = [...PROPERTIES];
+  filteredProps = [...PROPERTIES, ...serverProperties];
   renderCatalog(filteredProps);
   toast("Filtros limpiados");
 }
@@ -193,51 +208,92 @@ $("#fPrice").addEventListener("input", () => $("#fPriceLabel").textContent = fmt
 $("#filtersToggle").addEventListener("click", () => $(".filters-body").classList.toggle("open"));
 
 /* ---------- Mapa ---------- */
-function renderMap(list) {
-  const box = $("#mapPins");
-  box.innerHTML = "";
-  list.forEach(p => {
-    const el = document.createElement("span");
-    el.className = "map-pin prop";
-    el.style.left = (20 + (p.id * 13) % 60) + "%";
-    el.style.top = (15 + (p.id * 29) % 65) + "%";
-    el.title = `${p.nombre} · ${fmt(p.precio)}`;
-    el.addEventListener("click", () => openDetail(p.id));
-    box.appendChild(el);
-  });
-  FLETES.forEach((f, i) => {
-    const el = document.createElement("span");
-    el.className = "map-pin flete";
-    el.style.left = (35 + i * 18) + "%";
-    el.style.top = (10 + (i % 2) * 45) + "%";
-    el.title = f.nombre;
-    box.appendChild(el);
-  });
+/* ---------- Mapa Leaflet ---------- */
+let leafletMap = null;
+let mapMarkers = [];
+
+const ICONS = {
+  prop: L.divIcon({ className: "", html: '<div style="width:14px;height:14px;background:#16a34a;border:2.5px solid #fff;border-radius:50%;box-shadow:0 2px 5px rgba(0,0,0,.35)"></div>', iconSize: [14,14], iconAnchor: [7,7] }),
+  flete: L.divIcon({ className: "", html: '<div style="width:14px;height:14px;background:#f97316;border:2.5px solid #fff;border-radius:50%;box-shadow:0 2px 5px rgba(0,0,0,.35)"></div>', iconSize: [14,14], iconAnchor: [7,7] }),
+  uni: L.divIcon({ className: "", html: '<div style="width:18px;height:18px;background:#1d4ed8;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.4)"></div>', iconSize: [18,18], iconAnchor: [9,9] })
+};
+
+function initMap() {
+  if (leafletMap) return;
+  leafletMap = L.map("leafletMap", { zoomControl: true }).setView([-29.4450, -66.8550], 12);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19
+  }).addTo(leafletMap);
+
+  const UNLaR = [-29.429795464675685, -66.86895000115601];
+  const UTN = [-29.409302686325614, -66.83154047687555];
+  L.marker(UNLaR, { icon: ICONS.uni }).addTo(leafletMap).bindPopup("<b>UNLaR</b>");
+  L.marker(UTN, { icon: ICONS.uni }).addTo(leafletMap).bindPopup("<b>UTN</b>");
+
+  setTimeout(() => leafletMap.invalidateSize(), 100);
 }
+
+function renderMap(list) {
+  if (!leafletMap) initMap();
+  mapMarkers.forEach(m => leafletMap.removeLayer(m));
+  mapMarkers = [];
+
+  list.forEach(p => {
+    if (!p.lat || !p.lng) return;
+    const m = L.marker([p.lat, p.lng], { icon: ICONS.prop }).addTo(leafletMap);
+    m.bindPopup(`<b>${p.nombre}</b><br>${fmt(p.precio)}/mes<br>${barrioName(p)}`);
+    m.on("click", () => openDetail(p.id));
+    mapMarkers.push(m);
+  });
+
+  FLETES.forEach(f => {
+    const coords = { 1:[-29.4220,-66.8530], 2:[-29.4300,-66.8660], 3:[-29.4100,-66.8400], 4:[-29.4180,-66.8600] };
+    const c = coords[f.id];
+    if (!c) return;
+    const m = L.marker(c, { icon: ICONS.flete }).addTo(leafletMap);
+    m.bindPopup(`<b>${f.nombre}</b><br>${f.tipo}`);
+    mapMarkers.push(m);
+  });
+
+  setTimeout(() => leafletMap.invalidateSize(), 50);
+}
+
 $("#toggleMapBtn").addEventListener("click", () => {
   const m = $("#mapSection");
   const hidden = m.style.display === "none";
   m.style.display = hidden ? "" : "none";
   $("#toggleMapBtn").textContent = hidden ? "Ocultar mapa" : "Mostrar mapa";
+  if (hidden && leafletMap) setTimeout(() => leafletMap.invalidateSize(), 100);
 });
 
 /* ---------- Detalle ---------- */
 function openDetail(id) {
-  const p = PROPERTIES.find(x => x.id === id);
+  const p = PROPERTIES.find(x => x.id === id) || serverProperties.find(x => x.id === id);
   if (!p) return;
   const modal = $("#modal");
-  $("#modalContent").innerHTML = `
-    <div class="gallery">
-      <div class="gallery-main" style="${bg(p.img)}"></div>
-      <div class="gallery-side">
-        <div style="${bg(p.img)};opacity:.85"></div>
-        <div style="${bg(p.img)};opacity:.7"></div>
-      </div>
-    </div>
+  const hasRealImg = Array.isArray(p.img) && p.img.length;
+  const galleryHTML = hasRealImg
+    ? `<div class="gallery">
+        <div class="gallery-main"><img src="http://localhost:3001/${p.img[0]}" alt="${p.nombre}" style="width:100%;height:100%;object-fit:cover;border-radius:12px"></div>
+        <div class="gallery-side">
+          ${p.img.length > 1 ? `<div><img src="http://localhost:3001/${p.img[1]}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:12px"></div>` : `<div style="${bg(p.img[0])}"></div>`}
+          ${p.img.length > 2 ? `<div><img src="http://localhost:3001/${p.img[2]}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:12px"></div>` : `<div style="${bg(p.img[0])};opacity:.7"></div>`}
+        </div>
+       </div>`
+    : `<div class="gallery">
+        <div class="gallery-main" style="${bg(p.img)}"></div>
+        <div class="gallery-side">
+          <div style="${bg(p.img)};opacity:.85"></div>
+          <div style="${bg(p.img)};opacity:.7"></div>
+        </div>
+       </div>`;
+
+  $("#modalContent").innerHTML = `${galleryHTML}
     <div class="detail-body">
       <div class="detail-head">
         <div>
-          <span class="prop-tag" style="position:static;background:#e8f4f8;color:var(--primary);display:inline-block;margin-bottom:8px">${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)} · ${p.barrio}</span>
+          <span class="prop-tag" style="position:static;background:#e8f4f8;color:var(--primary);display:inline-block;margin-bottom:8px">${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)} · ${barrioName(p)}</span>
           <h2>${p.nombre}</h2>
           <div class="prop-meta"><span>&#128205; ${p.dist.toFixed(1)} km de ${p.uni} · &#9203; ${Math.round(p.dist * 12)} min caminando · &#128690; ${Math.round(p.dist * 4)} min en bici · &#128663; ${Math.round(p.dist * 2)} min en auto</span></div>
         </div>
@@ -255,7 +311,7 @@ function openDetail(id) {
       </div>
       <div class="owner-row">
         <div class="owner-av">${p.propAv}</div>
-        <div><b>${p.propietario}</b><div class="muted" style="font-size:.85rem">Propietario verificado · ${p.barrio}</div></div>
+        <div><b>${p.propietario}</b><div class="muted" style="font-size:.85rem">Propietario verificado · ${barrioName(p)}${barrioField(p, 'calle') ? ' · ' + barrioField(p, 'calle') : ''}${barrioField(p, 'referencia') ? ' · ' + barrioField(p, 'referencia') : ''}</div>${barrioField(p, 'googleMapsUrl') ? '<a href="' + barrioField(p, 'googleMapsUrl') + '" target="_blank" style="font-size:.82rem;color:var(--primary)">Ver en Google Maps</a>' : ''}</div>
       </div>
       <div class="contact-info">
         <h4 style="margin-bottom:8px;color:var(--primary)">Datos de contacto</h4>
@@ -313,12 +369,17 @@ function renderCompareBar() {
   bar.classList.toggle("show", compare.length > 0);
   list.innerHTML = "";
   compare.forEach(id => {
-    const p = PROPERTIES.find(x => x.id === id);
+    const p = PROPERTIES.find(x => x.id === id) || serverProperties.find(x => x.id === id);
+    if (!p) return;
     const el = document.createElement("div");
     el.className = "compare-thumb";
-    el.style.background = IMGS[p.img];
+    if (Array.isArray(p.img) && p.img.length) {
+      el.innerHTML = `<img src="http://localhost:3001/${p.img[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:10px"><button data-rm="${id}">&times;</button>`;
+    } else {
+      el.style.background = IMGS[p.img] || "";
+      el.innerHTML = `<button data-rm="${id}">&times;</button>`;
+    }
     el.title = p.nombre;
-    el.innerHTML = `<button data-rm="${id}">&times;</button>`;
     list.appendChild(el);
   });
   list.querySelectorAll("[data-rm]").forEach(b => b.addEventListener("click", () => toggleCompare(+b.dataset.rm)));
@@ -326,7 +387,7 @@ function renderCompareBar() {
   $("#compareBtn").disabled = compare.length < 2;
 }
 $("#compareBtn").addEventListener("click", () => {
-  const items = compare.map(id => PROPERTIES.find(x => x.id === id));
+  const items = compare.map(id => PROPERTIES.find(x => x.id === id) || serverProperties.find(x => x.id === id)).filter(Boolean);
   const head = `<tr><th></th>${items.map(p => `<th>${p.nombre}</th>`).join("")}</tr>`;
   const row = (label, fn) => `<tr><td>${label}</td>${items.map(p => `<td>${fn(p)}</td>`).join("")}</tr>`;
   $("#modalContent2").innerHTML = `
@@ -642,7 +703,8 @@ $("#heroSearch").addEventListener("submit", (e) => {
   const uni = $("#searchUni").value;
   const bud = +$("#searchBudget").value;
   const tipo = $("#searchType").value;
-  filteredProps = PROPERTIES.filter(p =>
+  const allProps = [...PROPERTIES, ...serverProperties];
+  filteredProps = allProps.filter(p =>
     (uni === "Cualquiera" || p.uni === uni) &&
     (!bud || p.precio <= bud) &&
     (!tipo || p.tipo === tipo)
@@ -660,17 +722,277 @@ $("#closeQuickResults").addEventListener("click", () => {
 });
 
 /* ---------- Publicar ---------- */
-$("#publishForm").addEventListener("submit", (e) => {
+const UNLaR_COORDS = [-29.429795464675685, -66.86895000115601];
+const UTN_COORDS = [-29.409302686325614, -66.83154047687555];
+
+let publishMiniMap = null;
+let publishMarker = null;
+let publishLat = null;
+let publishLng = null;
+let publishImages = [];
+
+function parseGoogleMapsUrl(url) {
+  if (!url || typeof url !== "string") return null;
+  const patterns = [
+    /@(-?\d+\.?\d*),(-?\d+\.?\d*)/,
+    /[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/,
+    /!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/,
+    /[?&]center=(-?\d+\.?\d*),(-?\d+\.?\d*)/,
+    /[?&]ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/
+  ];
+  for (const re of patterns) {
+    const m = url.match(re);
+    if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  }
+  return null;
+}
+
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function calcDistInfo(lat, lng) {
+  const dUnilar = haversine(lat, lng, UNLaR_COORDS[0], UNLaR_COORDS[1]);
+  const dUtn = haversine(lat, lng, UTN_COORDS[0], UTN_COORDS[1]);
+  return { dUnilar, dUtn };
+}
+
+function initPublishMap() {
+  if (publishMiniMap) return;
+  const container = document.getElementById("publishMapPreview");
+  if (!container) return;
+  container.style.display = "";
+  publishMiniMap = L.map(container, { zoomControl: true }).setView([-29.445, -66.855], 13);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19
+  }).addTo(publishMiniMap);
+  publishMiniMap.on("click", (e) => {
+    placePublishMarker(e.latlng.lat, e.latlng.lng);
+  });
+  setTimeout(() => publishMiniMap.invalidateSize(), 100);
+}
+
+function placePublishMarker(lat, lng) {
+  publishLat = lat;
+  publishLng = lng;
+  if (publishMarker) {
+    publishMarker.setLatLng([lat, lng]);
+  } else {
+    publishMarker = L.marker([lat, lng], { draggable: true }).addTo(publishMiniMap);
+    publishMarker.on("dragend", (e) => {
+      publishLat = e.target.getLatLng().lat;
+      publishLng = e.target.getLatLng().lng;
+      updatePublishDistInfo();
+    });
+  }
+  publishMiniMap.setView([lat, lng], 15);
+  updatePublishDistInfo();
+}
+
+function updatePublishDistInfo() {
+  const infoEl = document.getElementById("publishDistInfo");
+  if (!publishLat || !publishLng || !infoEl) return;
+  const { dUnilar, dUtn } = calcDistInfo(publishLat, publishLng);
+  infoEl.style.display = "";
+  infoEl.innerHTML = `<strong>${dUnilar.toFixed(1)} km</strong> de UNLaR &mdash; <strong>${dUtn.toFixed(1)} km</strong> de UTN`;
+}
+
+function renderPublishPreviews() {
+  const container = document.getElementById("publishPreview");
+  if (!container) return;
+  container.innerHTML = "";
+  publishImages.forEach((src, i) => {
+    const item = document.createElement("div");
+    item.className = "publish-preview-item";
+    item.innerHTML = `<img src="${src}" alt="Foto ${i + 1}"><button type="button" class="remove-btn" data-rm="${i}">&times;</button>`;
+    container.appendChild(item);
+  });
+  container.querySelectorAll(".remove-btn").forEach(b => {
+    b.addEventListener("click", () => {
+      publishImages.splice(+b.dataset.rm, 1);
+      renderPublishPreviews();
+    });
+  });
+}
+
+function handlePublishFiles(files) {
+  const maxFiles = 10;
+  const maxSize = 5 * 1024 * 1024;
+  Array.from(files).forEach(file => {
+    if (publishImages.length >= maxFiles) { toast("Máximo 10 fotos"); return; }
+    if (!file.type.startsWith("image/")) { toast("Solo se aceptan imágenes"); return; }
+    if (file.size > maxSize) { toast(`${file.name} supera 5MB`); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      publishImages.push(e.target.result);
+      renderPublishPreviews();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+const publishFileInput = document.getElementById("publishFiles");
+if (publishFileInput) {
+  publishFileInput.addEventListener("change", (e) => {
+    handlePublishFiles(e.target.files);
+    e.target.value = "";
+  });
+}
+
+const publishGmInput = document.getElementById("pubGoogleMapsUrl");
+if (publishGmInput) {
+  publishGmInput.addEventListener("paste", () => {
+    setTimeout(() => {
+      const coords = parseGoogleMapsUrl(publishGmInput.value);
+      if (coords) {
+        initPublishMap();
+        placePublishMarker(coords.lat, coords.lng);
+      }
+    }, 100);
+  });
+  publishGmInput.addEventListener("input", () => {
+    const coords = parseGoogleMapsUrl(publishGmInput.value);
+    if (coords) {
+      initPublishMap();
+      placePublishMarker(coords.lat, coords.lng);
+    }
+  });
+}
+
+async function fetchPropiedades() {
+  try {
+    const res = await fetch("http://localhost:3001/api/propiedades");
+    if (!res.ok) return [];
+    return await res.json();
+  } catch { return []; }
+}
+
+let serverProperties = [];
+
+async function initServerProperties() {
+  serverProperties = await fetchPropiedades();
+  if (serverProperties.length) {
+    const allProps = [...PROPERTIES, ...serverProperties];
+    filteredProps = allProps;
+    renderCatalog(filteredProps);
+    renderFeatured();
+  }
+}
+
+$("#publishForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  toast("Propiedad publicada correctamente.");
-  e.target.reset();
+  if (!publishLat || !publishLng) {
+    toast("Pegá la URL de Google Maps y verificá la ubicación en el mapa");
+    return;
+  }
+  if (!publishImages.length) {
+    toast("Subí al menos 1 foto de la propiedad");
+    return;
+  }
+  const titulo = document.getElementById("pubTitulo").value.trim();
+  const precio = +document.getElementById("pubPrecio").value;
+  const tipo = document.getElementById("pubTipo").value;
+  const barrio = document.getElementById("pubBarrio").value.trim();
+  const calle = document.getElementById("pubCalle").value.trim();
+  const referencia = document.getElementById("pubReferencia").value.trim();
+  const googleMapsUrl = document.getElementById("pubGoogleMapsUrl").value.trim();
+  const habs = +document.getElementById("pubHabs").value;
+  const banos = +document.getElementById("pubBanos").value;
+  const desc = document.getElementById("pubDesc").value.trim();
+  const wifi = document.getElementById("pubWifi").checked;
+  const amoblado = document.getElementById("pubAmoblado").checked;
+  const cochera = document.getElementById("pubCochera").checked;
+  const balcon = document.getElementById("pubBalcon").checked;
+  const calefaccion = document.getElementById("pubCalefaccion").checked;
+  const aire = document.getElementById("pubAire").checked;
+  const parrilla = document.getElementById("pubParrilla").checked;
+
+  const servicios = [];
+  if (wifi) servicios.push("WiFi");
+  if (amoblado) servicios.push("Amoblado");
+  if (cochera) servicios.push("Cochera");
+  if (balcon) servicios.push("Balcón");
+  if (calefaccion) servicios.push("Calefacción");
+  if (aire) servicios.push("Aire acondicionado");
+  if (parrilla) servicios.push("Parrilla");
+
+  const { dUnilar, dUtn } = calcDistInfo(publishLat, publishLng);
+  const closestUni = dUnilar <= dUtn ? "UNLaR" : "UTN";
+  const dist = Math.round(Math.min(dUnilar, dUtn) * 10) / 10;
+
+  const formData = new FormData();
+  formData.append("titulo", titulo);
+  formData.append("precio", precio);
+  formData.append("tipo", tipo);
+  formData.append("barrio", barrio);
+  formData.append("calle", calle);
+  formData.append("referencia", referencia);
+  formData.append("googleMapsUrl", googleMapsUrl);
+  formData.append("lat", publishLat);
+  formData.append("lng", publishLng);
+  formData.append("dist", dist);
+  formData.append("uni", closestUni);
+  formData.append("habs", habs);
+  formData.append("banos", banos);
+  formData.append("desc", desc);
+  formData.append("wifi", wifi);
+  formData.append("amoblado", amoblado);
+  formData.append("cochera", cochera);
+  formData.append("servicios", JSON.stringify(servicios));
+
+  const fileInput = document.getElementById("publishFiles");
+  for (const file of fileInput.files) {
+    formData.append("fotos", file);
+  }
+
+  try {
+    const res = await fetch("http://localhost:3001/api/propiedades", {
+      method: "POST",
+      body: formData
+    });
+    if (!res.ok) throw new Error("Error del servidor");
+    toast("Propiedad publicada correctamente");
+    e.target.reset();
+    publishImages = [];
+    publishLat = null;
+    publishLng = null;
+    publishMarker = null;
+    renderPublishPreviews();
+    const distInfo = document.getElementById("publishDistInfo");
+    if (distInfo) distInfo.style.display = "none";
+    if (publishMiniMap) { publishMiniMap.remove(); publishMiniMap = null; }
+    await initServerProperties();
+    goTo("alquileres");
+  } catch (err) {
+    toast("Error al publicar. Intentá de nuevo.");
+  }
 });
 
 /* ---------- Init ---------- */
+function initCarousel() {
+  const slides = document.querySelectorAll(".hero-carousel-slide");
+  if (!slides.length) return;
+  let current = 0;
+  const total = slides.length;
+  const INTERVAL = 9000;
+  setInterval(() => {
+    slides[current].classList.remove("active");
+    current = (current + 1) % total;
+    slides[current].classList.add("active");
+  }, INTERVAL);
+}
+
 renderFeatured();
 renderFletes();
 renderCatalog(PROPERTIES);
 $("#favCountTop").textContent = favorites.length;
+initCarousel();
+initServerProperties();
 
 /* ---------- Proveedores ---------- */
 let providerLoggedIn = false;
@@ -729,13 +1051,13 @@ function renderProviderListings() {
     div.className = "card prop-card provider-listing-card";
     div.innerHTML = `
       <div class="prop-img" style="${bg(p.img || 'dep1')}">
-        <span class="prop-tag">${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)} · ${p.barrio}</span>
+      <span class="prop-tag">${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)} · ${barrioName(p)}</span>
       </div>
       <div class="prop-body">
         <h3 class="prop-title">${p.nombre}</h3>
         <div class="prop-price">${fmt(p.precio)} <small>/ mes</small></div>
         <div class="prop-meta">
-          <span>&#128205; ${p.barrio}</span>
+          <span>&#128205; ${barrioName(p)}</span>
           <span>&#128716; ${p.habs} hab · ${p.banos} baño</span>
         </div>
         <div class="prop-actions">
@@ -794,6 +1116,17 @@ function closeProviderModal() {
   $("#providerOverlay").classList.remove("show");
 }
 
+function barrioName(p) {
+  if (!p || !p.barrio) return '';
+  return typeof p.barrio === 'string' ? p.barrio : (p.barrio.nombre || '');
+}
+
+function barrioField(p, field) {
+  if (!p || !p.barrio) return '';
+  if (typeof p.barrio === 'string') return '';
+  return p.barrio[field] || '';
+}
+
 function providerFormHTML(p) {
   return `
     <form class="form" id="providerPropForm">
@@ -803,7 +1136,10 @@ function providerFormHTML(p) {
       </div>
       <div class="form-row">
         <label>Tipo<select id="ppTipo"><option value="departamento" ${p && p.tipo === 'departamento' ? 'selected' : ''}>Departamento</option><option value="habitacion" ${p && p.tipo === 'habitacion' ? 'selected' : ''}>Habitación</option><option value="casa" ${p && p.tipo === 'casa' ? 'selected' : ''}>Casa</option></select></label>
-        <label>Barrio<select id="ppBarrio"><option value="Centro" ${p && p.barrio === 'Centro' ? 'selected' : ''}>Centro</option><option value="Zona UNLaR" ${p && p.barrio === 'Zona UNLaR' ? 'selected' : ''}>Zona UNLaR</option><option value="San Vicente" ${p && p.barrio === 'San Vicente' ? 'selected' : ''}>San Vicente</option><option value="Coquimbito" ${p && p.barrio === 'Coquimbito' ? 'selected' : ''}>Coquimbito</option><option value="Santa Justina" ${p && p.barrio === 'Santa Justina' ? 'selected' : ''}>Santa Justina</option></select></label>
+        <label>Barrio<input type="text" id="ppBarrio" value="${p ? barrioName(p) : ''}" placeholder="Ej: Centro" required></label>
+        <label>Calle (opcional)<input type="text" id="ppCalle" value="${p ? barrioField(p, 'calle') : ''}" placeholder="Ej: San Martín 450"></label>
+        <label>Referencia (opcional)<input type="text" id="ppReferencia" value="${p ? barrioField(p, 'referencia') : ''}" placeholder="Ej: frente a la plaza"></label>
+        <label>URL Google Maps (opcional)<input type="text" id="ppGoogleMaps" value="${p ? barrioField(p, 'googleMapsUrl') : ''}" placeholder="https://maps.google.com/..."></label>
       </div>
       <div class="form-row">
         <label>Habitaciones<input type="number" id="ppHabs" min="1" value="${p ? p.habs : 1}"></label>
@@ -842,14 +1178,22 @@ function addProviderListing() {
   openProviderModal("Nueva propiedad", providerFormHTML(null));
   $("#providerPropForm").addEventListener("submit", (e) => {
     e.preventDefault();
+    const barrioVal = $("#ppBarrio").value.trim();
+    const calleVal = $("#ppCalle").value.trim();
+    const refVal = $("#ppReferencia").value.trim();
+    const gmVal = $("#ppGoogleMaps").value.trim();
+    const barrioObj = { nombre: barrioVal };
+    if (calleVal) barrioObj.calle = calleVal;
+    if (refVal) barrioObj.referencia = refVal;
+    if (gmVal) barrioObj.googleMapsUrl = gmVal;
     const newProp = {
       id: Date.now(),
       nombre: $("#ppNombre").value,
       tipo: $("#ppTipo").value,
       precio: +$("#ppPrecio").value,
-      barrio: $("#ppBarrio").value,
+      barrio: barrioObj,
       dist: Math.round((Math.random() * 4 + 0.5) * 10) / 10,
-      uni: $("#ppBarrio").value.includes("UNLaR") ? "UNLaR" : "UTN",
+      uni: barrioVal.includes("UNLaR") ? "UNLaR" : "UTN",
       habs: +$("#ppHabs").value,
       banos: +$("#ppBanos").value,
       wifi: $("#ppWifi").checked,
@@ -884,7 +1228,14 @@ function editProviderListing(idx) {
     p.nombre = $("#ppNombre").value;
     p.tipo = $("#ppTipo").value;
     p.precio = +$("#ppPrecio").value;
-    p.barrio = $("#ppBarrio").value;
+    const barrioVal = $("#ppBarrio").value.trim();
+    const calleVal = $("#ppCalle").value.trim();
+    const refVal = $("#ppReferencia").value.trim();
+    const gmVal = $("#ppGoogleMaps").value.trim();
+    p.barrio = { nombre: barrioVal };
+    if (calleVal) p.barrio.calle = calleVal;
+    if (refVal) p.barrio.referencia = refVal;
+    if (gmVal) p.barrio.googleMapsUrl = gmVal;
     p.habs = +$("#ppHabs").value;
     p.banos = +$("#ppBanos").value;
     p.wifi = $("#ppWifi").checked;

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ForanIA — Tu hogar universitario en La Rioja</title>
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
 
@@ -37,6 +38,13 @@
   <!-- ===== HOME ===== -->
   <section id="home" class="page active">
     <section class="hero">
+      <div class="hero-carousel">
+        <div class="hero-carousel-slide active" style="background-image:url('resources/Ciudad 1.jpg')"></div>
+        <div class="hero-carousel-slide" style="background-image:url('resources/Ciudad 2.jpg')"></div>
+        <div class="hero-carousel-slide" style="background-image:url('resources/Ciudad 3.jpeg')"></div>
+        <div class="hero-carousel-slide" style="background-image:url('resources/Ciudad 4.jpeg')"></div>
+      </div>
+      <div class="hero-overlay"></div>
       <div class="container">
         <div class="hero-content">
           <span class="badge">&#127979; Vivienda estudiantil · La Rioja</span>
@@ -100,12 +108,7 @@
           <p>Encontrá transporte para tu mudanza.</p>
           <span class="cat-link">Ver fletes &rarr;</span>
         </div>
-        <div class="card cat-card">
-          <div class="cat-icon">&#128736;</div>
-          <h3>Servicios</h3>
-          <p>Todo lo que necesitás para comenzar tu vida universitaria.</p>
-          <span class="cat-link soon">Próximamente</span>
-        </div>
+
       </div>
     </section>
 
@@ -191,7 +194,7 @@
             </div>
             <div class="filter-group">
               <label>Barrio</label>
-              <select id="fBarrio"><option value="">Todos</option><option>Centro</option><option>Zona UNLaR</option><option>San Vicente</option><option>Coquimbito</option><option>Santa Justina</option></select>
+              <input type="text" id="fBarrio" placeholder="Buscar barrio...">
             </div>
             <div class="filter-group">
               <label>Distancia máxima</label>
@@ -209,13 +212,7 @@
 
         <div class="catalog-main">
           <div class="map card" id="mapSection">
-            <div class="map-grid">
-              <span class="map-label map-uni" title="UNLaR">UNLaR</span>
-              <span class="map-label map-uni2" title="UTN">UTN</span>
-              <div class="map-street-v1"></div><div class="map-street-v2"></div>
-              <div class="map-street-h1"></div><div class="map-street-h2"></div>
-              <div id="mapPins"></div>
-            </div>
+            <div id="leafletMap"></div>
             <div class="map-legend">
               <span><i class="pin-dot dot-prop"></i> Propiedades</span>
               <span><i class="pin-dot dot-flete"></i> Fletes</span>
@@ -285,26 +282,51 @@
     <div class="container section narrow">
       <h2 class="section-title">Publicá tu propiedad</h2>
       <p class="muted">Completá los datos y tu propiedad aparecerá en ForanIA.</p>
-      <form class="card form" id="publishForm">
+      <form class="card form" id="publishForm" enctype="multipart/form-data">
+        <h3 class="form-block-title">Datos básicos</h3>
         <div class="form-row">
-          <label>Título<input type="text" placeholder="Ej: Departamento moderno en Centro" required></label>
-          <label>Precio ($/mes)<input type="number" placeholder="320000" required></label>
+          <label>Título<input type="text" id="pubTitulo" placeholder="Ej: Departamento moderno en Centro" required></label>
+          <label>Precio ($/mes)<input type="number" id="pubPrecio" placeholder="320000" required></label>
         </div>
         <div class="form-row">
-          <label>Tipo<select><option>departamento</option><option>habitacion</option><option>casa</option></select></label>
-          <label>Barrio<select><option>Centro</option><option>Zona UNLaR</option><option>San Vicente</option><option>Coquimbito</option><option>Santa Justina</option></select></label>
+          <label>Tipo<select id="pubTipo"><option value="departamento">Departamento</option><option value="habitacion">Habitación</option><option value="casa">Casa</option></select></label>
+          <label>Barrio<input type="text" id="pubBarrio" placeholder="Ej: Centro" required></label>
         </div>
+
+        <h3 class="form-block-title">Ubicación</h3>
         <div class="form-row">
-          <label>Habitaciones<input type="number" min="1" value="1"></label>
-          <label>Baños<input type="number" min="1" value="1"></label>
+          <label>Calle y número<input type="text" id="pubCalle" placeholder="Ej: San Martín 450" required></label>
+          <label>Referencia<input type="text" id="pubReferencia" placeholder="Ej: frente a la plaza"></label>
         </div>
-        <label>Descripción<textarea rows="3" placeholder="Describí tu propiedad..."></textarea></label>
+        <label>URL de Google Maps <span class="required-badge">obligatoria</span><input type="url" id="pubGoogleMapsUrl" placeholder="Pegá el link de Google Maps de la ubicación exacta" required></label>
+        <p class="form-help">Pegá el link de Google Maps de la ubicación exacta de la propiedad</p>
+        <div id="publishMapPreview" class="publish-map-preview"></div>
+        <div id="publishDistInfo" class="dist-info" style="display:none"></div>
+
+        <h3 class="form-block-title">Fotos</h3>
+        <label class="file-upload-label" for="publishFiles">Elegí hasta 10 fotos (máx. 5MB c/u)</label>
+        <input type="file" id="publishFiles" multiple accept="image/*" class="file-upload-input">
+        <div id="publishPreview" class="publish-preview-grid"></div>
+
+        <h3 class="form-block-title">Detalles</h3>
+        <div class="form-row">
+          <label>Habitaciones<input type="number" id="pubHabs" min="1" value="1" required></label>
+          <label>Baños<input type="number" id="pubBanos" min="1" value="1" required></label>
+        </div>
+        <label>Descripción<textarea id="pubDesc" rows="3" placeholder="Describí tu propiedad..." required></textarea></label>
+
+        <h3 class="form-block-title">Servicios</h3>
         <div class="filter-group checks">
-          <label><input type="checkbox"> WiFi</label>
-          <label><input type="checkbox"> Amoblado</label>
-          <label><input type="checkbox"> Cochera</label>
+          <label><input type="checkbox" id="pubWifi"> WiFi</label>
+          <label><input type="checkbox" id="pubAmoblado"> Amoblado</label>
+          <label><input type="checkbox" id="pubCochera"> Cochera</label>
+          <label><input type="checkbox" id="pubBalcon"> Balcón</label>
+          <label><input type="checkbox" id="pubCalefaccion"> Calefacción</label>
+          <label><input type="checkbox" id="pubAire"> Aire acondicionado</label>
+          <label><input type="checkbox" id="pubParrilla"> Parrilla</label>
         </div>
-        <button type="submit" class="btn btn-primary btn-lg">Publicar propiedad</button>
+
+        <button type="submit" class="btn btn-primary btn-lg" id="publishBtn">Publicar propiedad</button>
       </form>
     </div>
   </section>
@@ -440,6 +462,7 @@
 <!-- ============ TOAST ============ -->
 <div class="toast" id="toast"></div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
