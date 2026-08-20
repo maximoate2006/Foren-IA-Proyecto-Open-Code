@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const multer = require("multer");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const supabase = require("./config/supabase");
@@ -9,10 +10,13 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
 // Servir archivos estáticos del frontend
 app.use(express.static(path.join(__dirname, "..")));
+
+// Multer: recibir archivos en buffer内存 (no disco local)
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 // ============================================================
 // Helpers
@@ -115,6 +119,11 @@ function transformAlojamiento(row) {
     cochera,
     servicios: caracteristicas,
     img: IMGS[row.id] || "linear-gradient(135deg,#8b5cf6,#4c1d95)",
+    imgs: (row.imagenes_alojamiento || [])
+      .sort((a, b) => a.orden - b.orden)
+      .map(img => img.url),
+    lat: row.latitud || null,
+    lng: row.longitud || null,
     propietario: prop.nombre_comercial || "",
     propAv: iniciales(prop.nombre_comercial),
     tel: prop.telefono || "",
@@ -155,7 +164,8 @@ app.get("/api/alojamientos", async (req, res) => {
         tipos_alojamiento (nombre),
         proveedores (nombre_comercial, telefono, email, whatsapp, descripcion),
         alojamiento_caracteristicas (caracteristicas (nombre)),
-        alojamiento_universidades (universidades (nombre, latitud, longitud))
+        alojamiento_universidades (universidades (nombre, latitud, longitud)),
+        imagenes_alojamiento (id, url, orden)
       `)
       .eq("estado", "disponible")
       .order("id");
@@ -181,7 +191,8 @@ app.get("/api/alojamientos/:id", async (req, res) => {
         tipos_alojamiento (nombre),
         proveedores (nombre_comercial, telefono, email, whatsapp, descripcion),
         alojamiento_caracteristicas (caracteristicas (nombre)),
-        alojamiento_universidades (universidades (nombre, latitud, longitud))
+        alojamiento_universidades (universidades (nombre, latitud, longitud)),
+        imagenes_alojamiento (id, url, orden)
       `)
       .eq("id", req.params.id)
       .single();
@@ -434,7 +445,7 @@ app.get("/api/proveedores/:id/alojamientos", async (req, res) => {
 
 // POST /api/alojamientos — crear alojamiento
 app.post("/api/alojamientos", async (req, res) => {
-  const { proveedor_id, titulo, tipo, precio_mensual, barrio, habitaciones, banos, descripcion, wifi, amoblado, cochera, universidad } = req.body;
+  const { proveedor_id, titulo, tipo, precio_mensual, barrio, habitaciones, banos, descripcion, latitud, longitud, wifi, amoblado, cochera, balcon, calefaccion, aire, parrilla, universidad } = req.body;
 
   if (!proveedor_id || !titulo || !precio_mensual) {
     return res.status(400).json({ error: "Faltan campos obligatorios: proveedor_id, titulo, precio_mensual" });
@@ -455,9 +466,9 @@ app.post("/api/alojamientos", async (req, res) => {
       tipoId = t?.id || null;
     }
 
-    // Coordenadas aleatorias (placeholder hasta tener datos reales)
-    const lat = -29.41 + (Math.random() * 0.04 - 0.02);
-    const lon = -66.85 + (Math.random() * 0.04 - 0.02);
+    // Usar coordenadas reales del frontend, o placeholder si no se proveen
+    const lat = latitud ? Number(latitud) : (-29.41 + (Math.random() * 0.04 - 0.02));
+    const lng = longitud ? Number(longitud) : (-66.85 + (Math.random() * 0.04 - 0.02));
 
     // Insertar alojamiento
     const { data: aloj, error } = await supabase
@@ -471,7 +482,7 @@ app.post("/api/alojamientos", async (req, res) => {
         banos: banos || 1,
         descripcion: descripcion || "",
         latitud: lat,
-        longitud: lon,
+        longitud: lng,
         estado: "disponible",
         proveedor_id
       })
@@ -488,14 +499,24 @@ app.post("/api/alojamientos", async (req, res) => {
       }
     }
 
-    // Asociar características
-    const caracteristicas = [];
-    if (wifi) caracteristicas.push("WiFi");
-    if (amoblado) caracteristicas.push("Amoblado");
-    if (cochera) caracteristicas.push("Cochera");
+    // Asociar características (crear si no existen)
+    const caracteristicasNuevas = [];
+    if (wifi) caracteristicasNuevas.push("WiFi");
+    if (amoblado) caracteristicasNuevas.push("Amoblado");
+    if (cochera) caracteristicasNuevas.push("Cochera");
+    if (balcon) caracteristicasNuevas.push("Balcón");
+    if (calefaccion) caracteristicasNuevas.push("Calefacción");
+    if (aire) caracteristicasNuevas.push("Aire acondicionado");
+    if (parrilla) caracteristicasNuevas.push("Parrilla");
 
-    for (const nombre of caracteristicas) {
-      const { data: c } = await supabase.from("caracteristicas").select("id").eq("nombre", nombre).single();
+    for (const nombre of caracteristicasNuevas) {
+      // Buscar si ya existe
+      let { data: c } = await supabase.from("caracteristicas").select("id").eq("nombre", nombre).single();
+      // Si no existe, crearla
+      if (!c) {
+        const { data: nueva } = await supabase.from("caracteristicas").insert({ nombre }).select("id").single();
+        c = nueva;
+      }
       if (c) {
         await supabase.from("alojamiento_caracteristicas").insert({ alojamiento_id: aloj.id, caracteristica_id: c.id });
       }
@@ -580,12 +601,130 @@ app.delete("/api/alojamientos/:id", async (req, res) => {
   try {
     await supabase.from("alojamiento_caracteristicas").delete().eq("alojamiento_id", id);
     await supabase.from("alojamiento_universidades").delete().eq("alojamiento_id", id);
+
+    // Eliminar imágenes de Storage antes de borrar registros
+    const { data: imgs } = await supabase.from("imagenes_alojamiento").select("url").eq("alojamiento_id", id);
+    if (imgs && imgs.length) {
+      const paths = imgs.map(i => i.url.split("/").slice(-2).join("/"));
+      await supabase.storage.from("alojamiento-imagenes").remove(paths);
+    }
+    await supabase.from("imagenes_alojamiento").delete().eq("alojamiento_id", id);
+
     const { error } = await supabase.from("alojamientos").delete().eq("id", id);
     if (error) throw error;
     res.json({ ok: true });
   } catch (err) {
     console.error("Error DELETE /api/alojamientos/:id:", err.message);
     res.status(500).json({ error: "Error al eliminar alojamiento" });
+  }
+});
+
+// ============================================================
+// Imágenes — Upload a Supabase Storage + referencia en DB
+// ============================================================
+
+// POST /api/alojamientos/:id/imagenes — subir imágenes
+app.post("/api/alojamientos/:id/imagenes", upload.array("fotos", 10), async (req, res) => {
+  const alojamientoId = req.params.id;
+  const files = req.files;
+
+  if (!files || !files.length) {
+    return res.status(400).json({ error: "No se enviaron archivos" });
+  }
+
+  try {
+    // Verificar que el alojamiento existe
+    const { data: aloj } = await supabase.from("alojamientos").select("id").eq("id", alojamientoId).single();
+    if (!aloj) return res.status(404).json({ error: "Alojamiento no encontrado" });
+
+    // Obtener el orden máximo actual
+    const { data: existing } = await supabase
+      .from("imagenes_alojamiento")
+      .select("orden")
+      .eq("alojamiento_id", alojamientoId)
+      .order("orden", { ascending: false })
+      .limit(1);
+    let nextOrden = existing && existing.length ? existing[0].orden + 1 : 0;
+
+    const uploaded = [];
+
+    for (const file of files) {
+      const ext = file.originalname.split(".").pop() || "jpg";
+      const filePath = `aloj-${alojamientoId}/${Date.now()}_${nextOrden}.${ext}`;
+
+      // Subir a Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from("alojamiento-imagenes")
+        .upload(filePath, file.buffer, { contentType: file.mimetype });
+
+      if (uploadError) {
+        console.error("Error subiendo a Storage:", uploadError.message);
+        continue;
+      }
+
+      // Obtener URL pública
+      const { data: urlData } = supabase.storage
+        .from("alojamiento-imagenes")
+        .getPublicUrl(filePath);
+
+      const publicUrl = urlData.publicUrl;
+
+      // Insertar referencia en DB
+      const { data: imgRecord, error: dbError } = await supabase
+        .from("imagenes_alojamiento")
+        .insert({
+          alojamiento_id: alojamientoId,
+          url: publicUrl,
+          orden: nextOrden
+        })
+        .select("id, url, orden")
+        .single();
+
+      if (dbError) {
+        console.error("Error insertando en DB:", dbError.message);
+        continue;
+      }
+
+      uploaded.push(imgRecord);
+      nextOrden++;
+    }
+
+    res.status(201).json({ ok: true, imagenes: uploaded });
+  } catch (err) {
+    console.error("Error POST /api/alojamientos/:id/imagenes:", err.message);
+    res.status(500).json({ error: "Error al subir imágenes" });
+  }
+});
+
+// DELETE /api/imagenes/:imagenId — eliminar una imagen
+app.delete("/api/imagenes/:imagenId", async (req, res) => {
+  const imagenId = req.params.imagenId;
+
+  try {
+    // Obtener la imagen para extraer el path del Storage
+    const { data: img } = await supabase
+      .from("imagenes_alojamiento")
+      .select("url, alojamiento_id")
+      .eq("id", imagenId)
+      .single();
+
+    if (!img) return res.status(404).json({ error: "Imagen no encontrada" });
+
+    // Extraer path relativo del Storage desde la URL pública
+    const urlParts = img.url.split("/alojamiento-imagenes/");
+    const storagePath = urlParts[1] || img.url.split("/").slice(-2).join("/");
+
+    // Eliminar de Storage
+    await supabase.storage.from("alojamiento-imagenes").remove([storagePath]);
+
+    // Eliminar de DB
+    const { error } = await supabase.from("imagenes_alojamiento").delete().eq("id", imagenId);
+    if (error) throw error;
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("Error DELETE /api/imagenes/:imagenId:", err.message);
+    res.status(500).json({ error: "Error al eliminar imagen" });
   }
 });
 

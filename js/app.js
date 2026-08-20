@@ -72,6 +72,15 @@ let filteredProps = [...PROPERTIES];
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
 const fmt = (n) => "$" + Number(n).toLocaleString("es-AR");
+function barrioName(p) {
+  if (!p || !p.barrio) return '';
+  return typeof p.barrio === 'string' ? p.barrio : (p.barrio.nombre || '');
+}
+function barrioField(p, field) {
+  if (!p || !p.barrio) return '';
+  if (typeof p.barrio === 'string') return '';
+  return p.barrio[field] || '';
+}
 const toast = (msg) => {
   const t = $("#toast");
   t.textContent = msg;
@@ -102,12 +111,17 @@ $("#hamburger").addEventListener("click", () => document.body.classList.toggle("
 function propCard(p, grid) {
   const fav = favorites.includes(p.id);
   const servs = p.servicios.slice(0, 2);
+  const hasImg = Array.isArray(p.imgs) && p.imgs.length > 0;
+  const imgStyle = hasImg
+    ? ''
+    : `style="${bg(p.img)}"`;
   const div = document.createElement("article");
   div.className = "card prop-card";
   div.innerHTML = `
-    <div class="prop-img" style="${bg(p.img)}">
+    <div class="prop-img" ${imgStyle}>
+      ${hasImg ? `<img src="${p.imgs[0]}" alt="${p.nombre}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:var(--radius) var(--radius) 0 0">` : ''}
       <button class="prop-fav ${fav ? 'on' : ''}" data-fav="${p.id}">${fav ? "&#9829;" : "&#9825;"}</button>
-      <span class="prop-tag">${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)} · ${p.barrio}</span>
+      <span class="prop-tag">${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)} · ${barrioName(p)}</span>
     </div>
     <div class="prop-body">
       <h3 class="prop-title">${p.nombre}</h3>
@@ -183,7 +197,7 @@ function applyFilters() {
     p.precio <= maxP &&
     (!tipo || p.tipo === tipo) &&
     (!uni || p.uni === uni) &&
-    (!barrio || p.barrio === barrio) &&
+    (!barrio || barrioName(p).toLowerCase().includes(barrio.toLowerCase())) &&
     p.dist <= maxD &&
     (!amob || p.amoblado) &&
     (!wifi || p.wifi) &&
@@ -215,33 +229,63 @@ $("#clearFilters").addEventListener("click", clearFilters);
 $("#fPrice").addEventListener("input", () => $("#fPriceLabel").textContent = fmt($("#fPrice").value));
 $("#filtersToggle").addEventListener("click", () => $(".filters-body").classList.toggle("open"));
 
-/* ---------- Mapa ---------- */
-function renderMap(list) {
-  const box = $("#mapPins");
-  box.innerHTML = "";
-  list.forEach(p => {
-    const el = document.createElement("span");
-    el.className = "map-pin prop";
-    el.style.left = (20 + (p.id * 13) % 60) + "%";
-    el.style.top = (15 + (p.id * 29) % 65) + "%";
-    el.title = `${p.nombre} · ${fmt(p.precio)}`;
-    el.addEventListener("click", () => openDetail(p.id));
-    box.appendChild(el);
-  });
-  FLETES.forEach((f, i) => {
-    const el = document.createElement("span");
-    el.className = "map-pin flete";
-    el.style.left = (35 + i * 18) + "%";
-    el.style.top = (10 + (i % 2) * 45) + "%";
-    el.title = f.nombre;
-    box.appendChild(el);
-  });
+/* ---------- Mapa Leaflet ---------- */
+let leafletMap = null;
+let mapMarkers = [];
+
+const ICONS = {
+  prop: L.divIcon({ className: "", html: '<div style="width:14px;height:14px;background:#16a34a;border:2.5px solid #fff;border-radius:50%;box-shadow:0 2px 5px rgba(0,0,0,.35)"></div>', iconSize: [14,14], iconAnchor: [7,7] }),
+  flete: L.divIcon({ className: "", html: '<div style="width:14px;height:14px;background:#f97316;border:2.5px solid #fff;border-radius:50%;box-shadow:0 2px 5px rgba(0,0,0,.35)"></div>', iconSize: [14,14], iconAnchor: [7,7] }),
+  uni: L.divIcon({ className: "", html: '<div style="width:18px;height:18px;background:#1d4ed8;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.4)"></div>', iconSize: [18,18], iconAnchor: [9,9] })
+};
+
+function initMap() {
+  if (leafletMap) return;
+  leafletMap = L.map("leafletMap", { zoomControl: true }).setView([-29.4450, -66.8550], 12);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19
+  }).addTo(leafletMap);
+
+  const UNLaR = [-29.429795464675685, -66.86895000115601];
+  const UTN = [-29.409302686325614, -66.83154047687555];
+  L.marker(UNLaR, { icon: ICONS.uni }).addTo(leafletMap).bindPopup("<b>UNLaR</b>");
+  L.marker(UTN, { icon: ICONS.uni }).addTo(leafletMap).bindPopup("<b>UTN</b>");
+
+  setTimeout(() => leafletMap.invalidateSize(), 100);
 }
+
+function renderMap(list) {
+  if (!leafletMap) initMap();
+  mapMarkers.forEach(m => leafletMap.removeLayer(m));
+  mapMarkers = [];
+
+  list.forEach(p => {
+    if (!p.lat || !p.lng) return;
+    const m = L.marker([p.lat, p.lng], { icon: ICONS.prop }).addTo(leafletMap);
+    m.bindPopup(`<b>${p.nombre}</b><br>${fmt(p.precio)}/mes<br>${barrioName(p)}`);
+    m.on("click", () => openDetail(p.id));
+    mapMarkers.push(m);
+  });
+
+  FLETES.forEach(f => {
+    const coords = { 1:[-29.4220,-66.8530], 2:[-29.4300,-66.8660], 3:[-29.4100,-66.8400], 4:[-29.4180,-66.8600] };
+    const c = coords[f.id];
+    if (!c) return;
+    const m = L.marker(c, { icon: ICONS.flete }).addTo(leafletMap);
+    m.bindPopup(`<b>${f.nombre}</b><br>${f.tipo}`);
+    mapMarkers.push(m);
+  });
+
+  setTimeout(() => leafletMap.invalidateSize(), 50);
+}
+
 $("#toggleMapBtn").addEventListener("click", () => {
   const m = $("#mapSection");
   const hidden = m.style.display === "none";
   m.style.display = hidden ? "" : "none";
   $("#toggleMapBtn").textContent = hidden ? "Ocultar mapa" : "Mostrar mapa";
+  if (hidden && leafletMap) setTimeout(() => leafletMap.invalidateSize(), 100);
 });
 
 /* ---------- Detalle ---------- */
@@ -250,18 +294,29 @@ function openDetail(id) {
   if (!p) return;
   if (p.proveedor_id) trackView(p.proveedor_id, p.id);
   const modal = $("#modal");
-  $("#modalContent").innerHTML = `
-    <div class="gallery">
-      <div class="gallery-main" style="${bg(p.img)}"></div>
-      <div class="gallery-side">
-        <div style="${bg(p.img)};opacity:.85"></div>
-        <div style="${bg(p.img)};opacity:.7"></div>
-      </div>
-    </div>
+
+  const hasImgs = Array.isArray(p.imgs) && p.imgs.length > 0;
+  const galleryHTML = hasImgs
+    ? `<div class="gallery">
+        <div class="gallery-main"><img src="${p.imgs[0]}" alt="${p.nombre}" style="width:100%;height:100%;object-fit:cover;border-radius:12px"></div>
+        <div class="gallery-side">
+          ${p.imgs.length > 1 ? `<div><img src="${p.imgs[1]}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:12px"></div>` : `<div style="${bg(p.img)}"></div>`}
+          ${p.imgs.length > 2 ? `<div><img src="${p.imgs[2]}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:12px"></div>` : `<div style="${bg(p.img)};opacity:.7"></div>`}
+        </div>
+       </div>`
+    : `<div class="gallery">
+        <div class="gallery-main" style="${bg(p.img)}"></div>
+        <div class="gallery-side">
+          <div style="${bg(p.img)};opacity:.85"></div>
+          <div style="${bg(p.img)};opacity:.7"></div>
+        </div>
+       </div>`;
+
+  $("#modalContent").innerHTML = `${galleryHTML}
     <div class="detail-body">
       <div class="detail-head">
         <div>
-          <span class="prop-tag" style="position:static;background:#e8f4f8;color:var(--primary);display:inline-block;margin-bottom:8px">${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)} · ${p.barrio}</span>
+          <span class="prop-tag" style="position:static;background:#e8f4f8;color:var(--primary);display:inline-block;margin-bottom:8px">${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)} · ${barrioName(p)}</span>
           <h2>${p.nombre}</h2>
           <div class="prop-meta"><span>&#128205; ${p.dist.toFixed(1)} km de ${p.uni} · &#9203; ${Math.round(p.dist * 12)} min caminando · &#128690; ${Math.round(p.dist * 4)} min en bici · &#128663; ${Math.round(p.dist * 2)} min en auto</span></div>
         </div>
@@ -279,7 +334,7 @@ function openDetail(id) {
       </div>
       <div class="owner-row">
         <div class="owner-av">${p.propAv}</div>
-        <div><b>${p.propietario}</b><div class="muted" style="font-size:.85rem">Propietario verificado · ${p.barrio}</div></div>
+        <div><b>${p.propietario}</b><div class="muted" style="font-size:.85rem">Propietario verificado · ${barrioName(p)}${barrioField(p, 'calle') ? ' · ' + barrioField(p, 'calle') : ''}${barrioField(p, 'referencia') ? ' · ' + barrioField(p, 'referencia') : ''}</div>${barrioField(p, 'googleMapsUrl') ? '<a href="' + barrioField(p, 'googleMapsUrl') + '" target="_blank" style="font-size:.82rem;color:var(--primary)">Ver en Google Maps</a>' : ''}</div>
       </div>
       <div class="contact-info">
         <h4 style="margin-bottom:8px;color:var(--primary)">Datos de contacto</h4>
@@ -338,11 +393,16 @@ function renderCompareBar() {
   list.innerHTML = "";
   compare.forEach(id => {
     const p = PROPERTIES.find(x => x.id === id);
+    if (!p) return;
     const el = document.createElement("div");
     el.className = "compare-thumb";
-    el.style.background = p.img;
+    if (Array.isArray(p.imgs) && p.imgs.length) {
+      el.innerHTML = `<img src="${p.imgs[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:10px"><button data-rm="${id}">&times;</button>`;
+    } else {
+      el.style.background = p.img;
+      el.innerHTML = `<button data-rm="${id}">&times;</button>`;
+    }
     el.title = p.nombre;
-    el.innerHTML = `<button data-rm="${id}">&times;</button>`;
     list.appendChild(el);
   });
   list.querySelectorAll("[data-rm]").forEach(b => b.addEventListener("click", () => toggleCompare(+b.dataset.rm)));
@@ -685,13 +745,265 @@ $("#closeQuickResults").addEventListener("click", () => {
 });
 
 /* ---------- Publicar ---------- */
-$("#publishForm").addEventListener("submit", (e) => {
+const UNLaR_COORDS = [-29.429795464675685, -66.86895000115601];
+const UTN_COORDS = [-29.409302686325614, -66.83154047687555];
+
+let publishMiniMap = null;
+let publishMarker = null;
+let publishLat = null;
+let publishLng = null;
+let publishImages = [];
+
+function parseGoogleMapsUrl(url) {
+  if (!url || typeof url !== "string") return null;
+  const patterns = [
+    /@(-?\d+\.?\d*),(-?\d+\.?\d*)/,
+    /[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/,
+    /!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/,
+    /[?&]center=(-?\d+\.?\d*),(-?\d+\.?\d*)/,
+    /[?&]ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/
+  ];
+  for (const re of patterns) {
+    const m = url.match(re);
+    if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  }
+  return null;
+}
+
+function calcDistInfo(lat, lng) {
+  function hav(lat1, lng1, lat2, lng2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+  return { dUnilar: hav(lat, lng, UNLaR_COORDS[0], UNLaR_COORDS[1]), dUtn: hav(lat, lng, UTN_COORDS[0], UTN_COORDS[1]) };
+}
+
+function initPublishMap() {
+  if (publishMiniMap) return;
+  const container = document.getElementById("publishMapPreview");
+  if (!container) return;
+  container.style.display = "";
+  publishMiniMap = L.map(container, { zoomControl: true }).setView([-29.445, -66.855], 13);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19
+  }).addTo(publishMiniMap);
+  publishMiniMap.on("click", (e) => {
+    placePublishMarker(e.latlng.lat, e.latlng.lng);
+  });
+  setTimeout(() => publishMiniMap.invalidateSize(), 100);
+}
+
+function placePublishMarker(lat, lng) {
+  publishLat = lat;
+  publishLng = lng;
+  if (publishMarker) {
+    publishMarker.setLatLng([lat, lng]);
+  } else {
+    publishMarker = L.marker([lat, lng], { draggable: true }).addTo(publishMiniMap);
+    publishMarker.on("dragend", (e) => {
+      publishLat = e.target.getLatLng().lat;
+      publishLng = e.target.getLatLng().lng;
+      updatePublishDistInfo();
+    });
+  }
+  publishMiniMap.setView([lat, lng], 15);
+  updatePublishDistInfo();
+}
+
+function updatePublishDistInfo() {
+  const infoEl = document.getElementById("publishDistInfo");
+  if (!publishLat || !publishLng || !infoEl) return;
+  const { dUnilar, dUtn } = calcDistInfo(publishLat, publishLng);
+  infoEl.style.display = "";
+  infoEl.innerHTML = `<strong>${dUnilar.toFixed(1)} km</strong> de UNLaR &mdash; <strong>${dUtn.toFixed(1)} km</strong> de UTN`;
+}
+
+function renderPublishPreviews() {
+  const container = document.getElementById("publishPreview");
+  if (!container) return;
+  container.innerHTML = "";
+  publishImages.forEach((src, i) => {
+    const item = document.createElement("div");
+    item.className = "publish-preview-item";
+    item.innerHTML = `<img src="${src}" alt="Foto ${i + 1}"><button type="button" class="remove-btn" data-rm="${i}">&times;</button>`;
+    container.appendChild(item);
+  });
+  container.querySelectorAll(".remove-btn").forEach(b => {
+    b.addEventListener("click", () => {
+      publishImages.splice(+b.dataset.rm, 1);
+      renderPublishPreviews();
+    });
+  });
+}
+
+function handlePublishFiles(files) {
+  const maxFiles = 10;
+  const maxSize = 5 * 1024 * 1024;
+  Array.from(files).forEach(file => {
+    if (publishImages.length >= maxFiles) { toast("Máximo 10 fotos"); return; }
+    if (!file.type.startsWith("image/")) { toast("Solo se aceptan imágenes"); return; }
+    if (file.size > maxSize) { toast(`${file.name} supera 5MB`); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      publishImages.push(e.target.result);
+      renderPublishPreviews();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+const publishFileInput = document.getElementById("publishFiles");
+if (publishFileInput) {
+  publishFileInput.addEventListener("change", (e) => {
+    handlePublishFiles(e.target.files);
+    e.target.value = "";
+  });
+}
+
+const publishGmInput = document.getElementById("pubGoogleMapsUrl");
+if (publishGmInput) {
+  publishGmInput.addEventListener("paste", () => {
+    setTimeout(() => {
+      const coords = parseGoogleMapsUrl(publishGmInput.value);
+      if (coords) {
+        initPublishMap();
+        placePublishMarker(coords.lat, coords.lng);
+      }
+    }, 100);
+  });
+  publishGmInput.addEventListener("input", () => {
+    const coords = parseGoogleMapsUrl(publishGmInput.value);
+    if (coords) {
+      initPublishMap();
+      placePublishMarker(coords.lat, coords.lng);
+    }
+  });
+}
+
+$("#publishForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  toast("Propiedad publicada correctamente.");
-  e.target.reset();
+
+  if (!publishLat || !publishLng) {
+    toast("Pegá la URL de Google Maps y verificá la ubicación en el mapa");
+    return;
+  }
+
+  const titulo = document.getElementById("pubTitulo").value.trim();
+  const precio = +document.getElementById("pubPrecio").value;
+  const tipo = document.getElementById("pubTipo").value;
+  const barrio = document.getElementById("pubBarrio").value.trim();
+  const habs = +document.getElementById("pubHabs").value;
+  const banos = +document.getElementById("pubBanos").value;
+  const desc = document.getElementById("pubDesc").value.trim();
+  const wifi = document.getElementById("pubWifi").checked;
+  const amoblado = document.getElementById("pubAmoblado").checked;
+  const cochera = document.getElementById("pubCochera").checked;
+  const balcon = document.getElementById("pubBalcon").checked;
+  const calefaccion = document.getElementById("pubCalefaccion").checked;
+  const aire = document.getElementById("pubAire").checked;
+  const parrilla = document.getElementById("pubParrilla").checked;
+
+  const { dUnilar, dUtn } = calcDistInfo(publishLat, publishLng);
+  const closestUni = dUnilar <= dUtn ? "UNLaR" : "UTN";
+
+  const submitBtn = document.getElementById("publishBtn");
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Publicando...";
+
+  try {
+    const res = await fetch(`${API_URL}/alojamientos`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        proveedor_id: providerData ? providerData.id : 1,
+        titulo,
+        tipo,
+        precio_mensual: precio,
+        barrio,
+        habitaciones: habs,
+        banos: banos,
+        descripcion: desc,
+        latitud: publishLat,
+        longitud: publishLng,
+        wifi, amoblado, cochera, balcon, calefaccion, aire, parrilla,
+        universidad: closestUni
+      })
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || "Error del servidor");
+    }
+
+    const result = await res.json();
+    const alojId = result.id;
+
+    // Subir imágenes si hay archivos seleccionados
+    const fileInput = document.getElementById("publishFiles");
+    if (fileInput && fileInput.files.length > 0) {
+      const formData = new FormData();
+      for (const file of fileInput.files) {
+        formData.append("fotos", file);
+      }
+
+      try {
+        const imgRes = await fetch(`${API_URL}/alojamientos/${alojId}/imagenes`, {
+          method: "POST",
+          body: formData
+        });
+
+        if (!imgRes.ok) {
+          const imgErr = await imgRes.json().catch(() => ({}));
+          toast(`Propiedad publicada, pero hubo un error al subir las imágenes: ${imgErr.error || "error desconocido"}`);
+        }
+      } catch (imgErr) {
+        toast("Propiedad publicada, pero no se pudieron subir las imágenes");
+      }
+    }
+
+    toast("Propiedad publicada correctamente");
+    e.target.reset();
+    publishImages = [];
+    publishLat = null;
+    publishLng = null;
+    publishMarker = null;
+    renderPublishPreviews();
+    const distInfo = document.getElementById("publishDistInfo");
+    if (distInfo) distInfo.style.display = "none";
+    if (publishMiniMap) { publishMiniMap.remove(); publishMiniMap = null; }
+
+    // Refrescar datos desde Supabase
+    await loadData();
+    renderFeatured();
+    renderCatalog(filteredProps);
+    goTo("alquileres");
+  } catch (err) {
+    toast(`Error al publicar: ${err.message}`);
+    console.error(err);
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Publicar propiedad";
+  }
 });
 
 /* ---------- Init ---------- */
+function initCarousel() {
+  const slides = document.querySelectorAll(".hero-carousel-slide");
+  if (!slides.length) return;
+  let current = 0;
+  const total = slides.length;
+  const INTERVAL = 9000;
+  setInterval(() => {
+    slides[current].classList.remove("active");
+    current = (current + 1) % total;
+    slides[current].classList.add("active");
+  }, INTERVAL);
+}
+
 async function init() {
   await Promise.all([loadData(), loadReferences()]);
   renderFeatured();
@@ -699,6 +1011,7 @@ async function init() {
   renderCatalog(PROPERTIES);
   $("#favCountTop").textContent = favorites.length;
   initProviderSection();
+  initCarousel();
 }
 init();
 
@@ -773,13 +1086,13 @@ function renderProviderListings() {
     div.className = "card prop-card provider-listing-card";
     div.innerHTML = `
       <div class="prop-img" style="${bg(p.img || 'dep1')}">
-        <span class="prop-tag">${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)} · ${p.barrio}</span>
+        <span class="prop-tag">${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)} · ${barrioName(p)}</span>
       </div>
       <div class="prop-body">
         <h3 class="prop-title">${p.nombre}</h3>
         <div class="prop-price">${fmt(p.precio)} <small>/ mes</small></div>
         <div class="prop-meta">
-          <span>&#128205; ${p.barrio}</span>
+          <span>&#128205; ${barrioName(p)}</span>
           <span>&#128716; ${p.habs} hab · ${p.banos} baño</span>
         </div>
         <div class="prop-actions">
