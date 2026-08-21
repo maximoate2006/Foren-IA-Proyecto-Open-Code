@@ -355,3 +355,41 @@ body.nav-open .hamburger span:nth-child(3){transform:translateY(-7.5px) rotate(-
 .geocode-status.success{background:#ecfdf5;color:#059669;border-color:#a7f3d0}
 .geocode-status.error{background:#fef3c7;color:#92400e;border-color:#fde68a}
 .geocode-status.loading{background:#f0f9ff;color:var(--primary);border-color:#bae6fd}
+
+/* ===== Lightbox (visor ampliado de imágenes) ===== */
+.lightbox{position:fixed;inset:0;background:rgba(10,8,20,.92);z-index:400;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:.25s}
+.lightbox.show{opacity:1;visibility:visible}
+.lb-img{max-width:92vw;max-height:88vh;width:auto;height:auto;object-fit:contain;border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.55);transform:scale(1);transform-origin:center center;transition:transform .18s ease;user-select:none;-webkit-user-drag:none}
+.lb-btn{position:fixed;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;border:none;background:rgba(255,255,255,.14);color:#fff;font-size:1.4rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;z-index:401;backdrop-filter:blur(4px)}
+.lb-btn:hover{background:rgba(255,255,255,.32)}
+.lb-prev{left:18px}
+.lb-next{right:18px}
+.lb-close{top:16px;right:16px;bottom:auto;transform:none;width:42px;height:42px;font-size:1.5rem}
+.lb-counter{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:rgba(17,24,39,.65);color:#fff;padding:6px 16px;border-radius:999px;font-size:.85rem;font-weight:600;z-index:401;backdrop-filter:blur(4px)}
+.gallery-main[data-lb]{cursor:zoom-in}
+.gallery-side div{cursor:default}
+.gallery-side div.lb-thumb{cursor:zoom-in;transition:transform .15s ease}
+.gallery-side div.lb-thumb:hover{transform:translateY(-2px)}
+@media (max-width:640px){
+  .lb-btn{width:40px;height:40px;font-size:1.2rem}
+  .lb-prev{left:10px}
+  .lb-next{right:10px}
+  .lb-close{top:10px;right:10px}
+  .lb-img{max-width:96vw;max-height:82vh}
+}
+
+/* ===== Mi cuenta / sesion ===== */
+.user-area{position:relative;display:flex;align-items:center}
+.user-btn{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:4px 12px 4px 4px;font-weight:600;font-size:.9rem;cursor:pointer;transition:.2s}
+.user-btn:hover{border-color:var(--primary)}
+.avatar-sm{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700}
+.caret{font-size:.7rem;color:var(--muted)}
+.user-menu{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 50px rgba(17,24,39,.16);min-width:200px;padding:8px;display:none;flex-direction:column;z-index:210}
+.user-menu.open{display:flex}
+.user-menu a,.user-menu button{padding:10px 12px;border-radius:10px;text-align:left;color:#111827;text-decoration:none;font-size:.92rem;font-weight:600;background:none;border:none;cursor:pointer;width:100%}
+.user-menu a:hover,.user-menu button:hover{background:#f3f0ff;color:var(--primary)}
+.user-menu hr{border:none;border-top:1px solid var(--line);margin:6px 4px}
+.cuenta-tabs{display:flex;gap:8px;margin-bottom:16px;background:#f3f4f6;padding:4px;border-radius:12px}
+.cuenta-tab{flex:1;padding:10px;border:none;background:transparent;border-radius:9px;font-weight:700;font-size:.92rem;color:var(--muted);cursor:pointer;transition:.2s}
+.cuenta-tab.active{background:#fff;color:var(--primary);box-shadow:0 2px 8px rgba(17,24,39,.08)}
+.form-error{color:#dc2626;font-size:.88rem;font-weight:600;min-height:1.1em;margin:4px 0 8px}

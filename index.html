@@ -21,12 +21,24 @@
       <a href="#" data-nav="proveedores" class="nav-link">Proveedores</a>
       <div class="nav-mobile-extra">
         <button class="btn btn-ghost" data-nav="favoritos"><span class="ico">&#9829;</span> Favoritos</button>
-        <button class="btn btn-primary" data-nav="perfil">Iniciar sesión</button>
+        <button class="btn btn-primary js-cuenta-mob">Iniciar sesión</button>
       </div>
     </nav>
     <div class="header-actions">
       <button class="btn btn-ghost icon-btn" data-nav="favoritos" title="Mis favoritos"><span class="ico">&#9829;</span><span class="fav-count" id="favCountTop">0</span></button>
-      <button class="btn btn-primary" data-nav="perfil">Iniciar sesión</button>
+      <div class="user-area">
+        <button class="btn btn-primary" id="btnCuenta"><span class="js-cuenta-label">Iniciar sesión</span></button>
+        <div class="user-chip" id="userChip" style="display:none">
+          <button class="user-btn" id="userBtn"><span class="avatar avatar-sm" id="userAvatar">U</span><span id="userName"></span> <span class="caret">&#9662;</span></button>
+          <div class="user-menu" id="userMenu">
+            <a href="#" data-nav="perfil">Mi perfil</a>
+            <a href="#" data-nav="favoritos">Mis favoritos</a>
+            <a href="#" data-nav="proveedores">Mis publicaciones</a>
+            <hr>
+            <button id="btnLogout">Cerrar sesión</button>
+          </div>
+        </div>
+      </div>
       <button class="hamburger" id="hamburger" aria-label="Menú"><span></span><span></span><span></span></button>
     </div>
   </div>
@@ -344,9 +356,9 @@
   <section id="perfil" class="page">
     <div class="container section narrow">
       <div class="card profile">
-        <div class="avatar">E</div>
-        <h2>Estudiante</h2>
-        <p class="muted">Estudiante en La Rioja</p>
+        <div class="avatar" id="profAvatar">E</div>
+        <h2 id="profNombre">Estudiante</h2>
+        <p class="muted" id="profEmail">Iniciá sesión para guardar tus favoritos en la nube</p>
         <div class="profile-stats">
           <div><strong id="profFavs">0</strong><span>Favoritos</span></div>
           <div><strong id="profComp">0</strong><span>En comparador</span></div>
@@ -457,6 +469,22 @@
 <div class="modal modal-lg" id="modal2">
   <button class="modal-close" id="modalClose2">&times;</button>
   <div id="modalContent2"></div>
+</div>
+
+<!-- ============ MODAL MI CUENTA ============ -->
+<div class="overlay" id="overlayCuenta"></div>
+<div class="modal" id="cuentaModal">
+  <button class="modal-close" id="cuentaClose">&times;</button>
+  <div id="cuentaContent"></div>
+</div>
+
+<!-- ============ LIGHTBOX (visor ampliado de imágenes) ============ -->
+<div class="lightbox" id="lightbox">
+  <button class="lb-btn lb-close" id="lbClose" aria-label="Cerrar">&times;</button>
+  <button class="lb-btn lb-prev" id="lbPrev" aria-label="Imagen anterior">&#10094;</button>
+  <button class="lb-btn lb-next" id="lbNext" aria-label="Imagen siguiente">&#10095;</button>
+  <img class="lb-img" id="lbImg" src="" alt="Imagen ampliada">
+  <div class="lb-counter" id="lbCounter"></div>
 </div>
 
 <!-- ============ TOAST ============ -->

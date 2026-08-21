@@ -191,8 +191,419 @@ function transformFlete(row) {
 }
 
 // ============================================================
+// Autenticación y autorización
+// ============================================================
+
+const MIGRACION_PENDIENTE = "Falta ejecutar la migración 004_usuarios_auth.sql en el SQL Editor de Supabase.";
+
+// Extrae y valida el JWT del header Authorization. Devuelve el user de auth o null.
+async function usuarioDesdeToken(req) {
+  const h = req.headers.authorization || "";
+  const token = h.startsWith("Bearer ") ? h.slice(7) : null;
+  if (!token) return null;
+  try {
+    const { data, error } = await supabase.auth.getUser(token);
+    if (error || !data?.user) return null;
+    return data.user;
+  } catch {
+    return null;
+  }
+}
+
+// Middleware: exige sesión válida
+async function requireAuth(req, res, next) {
+  const user = await usuarioDesdeToken(req);
+  if (!user) return res.status(401).json({ error: "No autenticado" });
+  req.authUser = user;
+  next();
+}
+
+// Perfil público del usuario (tabla usuarios). null si no existe o falta la migración.
+async function perfilUsuario(userId) {
+  try {
+    const { data, error } = await supabase.from("usuarios").select("*").eq("id", userId).maybeSingle();
+    if (error) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+// Proveedor vinculado a la cuenta (proveedores.usuario_id)
+async function proveedorDelUsuario(userId) {
+  try {
+    const { data, error } = await supabase
+      .from("proveedores")
+      .select("id, nombre_comercial, email, telefono, whatsapp, tipo_proveedor_id")
+      .eq("usuario_id", userId)
+      .maybeSingle();
+    if (error) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+// Asegura la fila en public.usuarios para un user de auth.
+// Además vincula automáticamente un proveedor legacy con el mismo email sin dueño
+// (ej: cuentas creadas con el login viejo por email).
+async function asegurarPerfil(authUser) {
+  let perfil = await perfilUsuario(authUser.id);
+  if (!perfil) {
+    const nombre = authUser.user_metadata?.nombre || (authUser.email || "").split("@")[0];
+    const tel = authUser.user_metadata?.telefono || null;
+    try {
+      const { data } = await supabase
+        .from("usuarios")
+        .upsert({ id: authUser.id, nombre, email: authUser.email, telefono: tel }, { onConflict: "id" })
+        .select("*").single();
+      perfil = data || { id: authUser.id, nombre, email: authUser.email, telefono: tel };
+    } catch {
+      // Sin migración 004 todavía: seguimos con datos del token
+      perfil = { id: authUser.id, nombre, email: authUser.email, telefono: tel };
+    }
+  }
+  return perfil;
+}
+
+// Verifica que el alojamiento pertenezca a un proveedor del usuario logueado
+async function esDueñoDeAlojamiento(userId, alojamientoId) {
+  try {
+    const { data: aloj, error } = await supabase
+      .from("alojamientos")
+      .select("proveedor_id")
+      .eq("id", alojamientoId)
+      .single();
+    if (error || !aloj?.proveedor_id) return false;
+    const prov = await proveedorDelUsuario(userId);
+    return !!prov && prov.id === aloj.proveedor_id;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================
 // Endpoints
 // ============================================================
+
+// ---------- Autenticación ----------
+
+// POST /api/auth/registrar — crear cuenta (email + contraseña)
+app.post("/api/auth/registrar", async (req, res) => {
+  const { nombre, email, password } = req.body;
+
+  if (!nombre || !email || !password) {
+    return res.status(400).json({ error: "Faltan campos obligatorios: nombre, email, password" });
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: "El email no tiene un formato válido" });
+  }
+  if (String(password).length < 6) {
+    return res.status(400).json({ error: "La contraseña debe tener al menos 6 caracteres" });
+  }
+
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { nombre } }
+    });
+
+    if (error) {
+      const msg = /already registered|already exists/i.test(error.message)
+        ? "Ya existe una cuenta con ese email"
+        : error.message;
+      return res.status(400).json({ error: msg });
+    }
+
+    // Perfil público en la tabla usuarios (best-effort; requiere migración 004)
+    let perfil = null;
+    if (data?.user) perfil = await asegurarPerfil(data.user);
+
+    if (!data.session) {
+      return res.status(201).json({
+        requiereConfirmacion: true,
+        mensaje: "Cuenta creada. Revisá tu email para confirmar el registro."
+      });
+    }
+
+    res.status(201).json({
+      requiereConfirmacion: false,
+      usuario: { id: data.user.id, nombre: perfil?.nombre || nombre, email: data.user.email },
+      session: {
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+        expires_at: data.session.expires_at
+      }
+    });
+  } catch (err) {
+    console.error("Error POST /api/auth/registrar:", err.message);
+    res.status(500).json({ error: "Error al registrar la cuenta" });
+  }
+});
+
+// POST /api/auth/login — iniciar sesión
+app.post("/api/auth/login", async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: "Faltan campos obligatorios: email, password" });
+  }
+
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      const msg = /not confirmed/i.test(error.message)
+        ? "Tu email aún no está confirmado. Revisá tu casilla."
+        : "Email o contraseña incorrectos";
+      return res.status(401).json({ error: msg });
+    }
+
+    const perfil = await asegurarPerfil(data.user);
+
+    res.json({
+      usuario: { id: data.user.id, nombre: perfil?.nombre || data.user.user_metadata?.nombre || "", email: data.user.email },
+      session: {
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+        expires_at: data.session.expires_at
+      }
+    });
+  } catch (err) {
+    console.error("Error POST /api/auth/login:", err.message);
+    res.status(500).json({ error: "Error al iniciar sesión" });
+  }
+});
+
+// POST /api/auth/refrescar — renovar tokens
+app.post("/api/auth/refrescar", async (req, res) => {
+  const { refresh_token } = req.body;
+  if (!refresh_token) return res.status(400).json({ error: "Falta refresh_token" });
+
+  try {
+    const { data, error } = await supabase.auth.refreshSession({ refresh_token });
+    if (error || !data?.session) return res.status(401).json({ error: "Sesión expirada, volvé a iniciar sesión" });
+
+    res.json({
+      session: {
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+        expires_at: data.session.expires_at
+      }
+    });
+  } catch (err) {
+    console.error("Error POST /api/auth/refrescar:", err.message);
+    res.status(500).json({ error: "Error al refrescar la sesión" });
+  }
+});
+
+// GET /api/auth/perfil — datos de la cuenta + proveedor vinculado
+app.get("/api/auth/perfil", requireAuth, async (req, res) => {
+  try {
+    const u = req.authUser;
+    const perfil = await perfilUsuario(u.id);
+    const proveedor = await proveedorDelUsuario(u.id);
+
+    res.json({
+      usuario: {
+        id: u.id,
+        nombre: perfil?.nombre || u.user_metadata?.nombre || "",
+        email: u.email,
+        telefono: perfil?.telefono ?? u.user_metadata?.telefono ?? null
+      },
+      proveedor: proveedor ? {
+        id: proveedor.id,
+        nombre_comercial: proveedor.nombre_comercial,
+        tipo_proveedor_id: proveedor.tipo_proveedor_id
+      } : null
+    });
+  } catch (err) {
+    console.error("Error GET /api/auth/perfil:", err.message);
+    res.status(500).json({ error: "Error al obtener el perfil" });
+  }
+});
+
+// POST /api/proveedores/vincular — dar de alta el perfil de proveedor de la cuenta
+app.post("/api/proveedores/vincular", requireAuth, async (req, res) => {
+  const { nombre, tipo, telefono } = req.body;
+  const TIPOS = { propietario: 1, inmobiliaria: 2, transportista: 3 };
+
+  if (!nombre || !tipo || !TIPOS[tipo]) {
+    return res.status(400).json({ error: "Faltan campos obligatorios: nombre, tipo (propietario | inmobiliaria | transportista)" });
+  }
+
+  try {
+    const existente = await proveedorDelUsuario(req.authUser.id);
+    if (existente) {
+      return res.json({ ok: true, yaVinculado: true, proveedor: existente });
+    }
+
+    const { data: nuevo, error } = await supabase
+      .from("proveedores")
+      .insert({
+        nombre_comercial: nombre,
+        email: req.authUser.email,
+        telefono: telefono || "",
+        whatsapp: (telefono || "").replace(/\s/g, ""),
+        tipo_proveedor_id: TIPOS[tipo],
+        rating: 0,
+        cobertura: "",
+        descripcion: "",
+        usuario_id: req.authUser.id
+      })
+      .select("id, nombre_comercial, email, telefono, whatsapp, tipo_proveedor_id")
+      .single();
+
+    if (error) throw error;
+    res.status(201).json({ ok: true, proveedor: nuevo });
+  } catch (err) {
+    console.error("Error POST /api/proveedores/vincular:", err.message);
+    const faltaTabla = /usuario_id|Could not find/.test(err.message || "");
+    res.status(faltaTabla ? 503 : 500).json({ error: faltaTabla ? MIGRACION_PENDIENTE : "Error al vincular proveedor" });
+  }
+});
+
+// ---------- Favoritos (requieren sesión) ----------
+
+async function favoritosDeUsuario(userId) {
+  const { data: favs, error } = await supabase
+    .from("favoritos")
+    .select("alojamiento_id")
+    .eq("usuario_id", userId)
+    .order("created_at");
+  if (error) throw error;
+  const ids = (favs || []).map(f => f.alojamiento_id);
+  if (!ids.length) return { ids, alojamientos: [] };
+
+  const { data: rows, error: errAloj } = await supabase
+    .from("alojamientos")
+    .select(`
+      *,
+      barrios (nombre),
+      tipos_alojamiento (nombre),
+      proveedores (nombre_comercial, telefono, email, whatsapp, descripcion),
+      alojamiento_caracteristicas (caracteristicas (nombre)),
+      alojamiento_universidades (universidades (nombre, latitud, longitud)),
+      imagenes_alojamiento (id, url, orden)
+    `)
+    .in("id", ids);
+  if (errAloj) throw errAloj;
+  return { ids, alojamientos: rows.map(transformAlojamiento) };
+}
+
+function esTablaFaltante(err) {
+  const m = String(err?.message || "");
+  return /does not exist|Could not find the table|relation .* does not exist/i.test(m);
+}
+
+// GET /api/favoritos — ids + alojamientos marcados como favorito
+app.get("/api/favoritos", requireAuth, async (req, res) => {
+  try {
+    res.json(await favoritosDeUsuario(req.authUser.id));
+  } catch (err) {
+    console.error("Error GET /api/favoritos:", err.message);
+    if (esTablaFaltante(err)) return res.status(503).json({ error: MIGRACION_PENDIENTE });
+    res.status(500).json({ error: "Error al obtener favoritos" });
+  }
+});
+
+// POST /api/favoritos/:alojamientoId — marcar favorito
+app.post("/api/favoritos/:alojamientoId", requireAuth, async (req, res) => {
+  try {
+    const { data: aloj } = await supabase.from("alojamientos").select("id").eq("id", req.params.alojamientoId).single();
+    if (!aloj) return res.status(404).json({ error: "Alojamiento inexistente" });
+
+    const { error } = await supabase
+      .from("favoritos")
+      .upsert(
+        { usuario_id: req.authUser.id, alojamiento_id: Number(req.params.alojamientoId) },
+        { onConflict: "usuario_id,alojamiento_id" }
+      );
+    if (error) throw error;
+    res.status(201).json({ ok: true });
+  } catch (err) {
+    console.error("Error POST /api/favoritos:", err.message);
+    if (esTablaFaltante(err)) return res.status(503).json({ error: MIGRACION_PENDIENTE });
+    res.status(500).json({ error: "Error al guardar favorito" });
+  }
+});
+
+// DELETE /api/favoritos/:alojamientoId — quitar favorito
+app.delete("/api/favoritos/:alojamientoId", requireAuth, async (req, res) => {
+  try {
+    const { error } = await supabase
+      .from("favoritos")
+      .delete()
+      .eq("usuario_id", req.authUser.id)
+      .eq("alojamiento_id", Number(req.params.alojamientoId));
+    if (error) throw error;
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("Error DELETE /api/favoritos:", err.message);
+    if (esTablaFaltante(err)) return res.status(503).json({ error: MIGRACION_PENDIENTE });
+    res.status(500).json({ error: "Error al quitar favorito" });
+  }
+});
+
+// POST /api/favoritos/sync — sincronizar favoritos locales al iniciar sesión
+app.post("/api/favoritos/sync", requireAuth, async (req, res) => {
+  const { ids } = req.body;
+  if (!Array.isArray(ids)) return res.status(400).json({ error: "Se espera { ids: [] }" });
+
+  try {
+    const validos = ids.map(Number).filter(n => Number.isInteger(n) && n > 0);
+    if (!validos.length) return res.json({ ok: true, agregados: 0 });
+
+    const { data: existen } = await supabase.from("alojamientos").select("id").in("id", validos);
+    const actuales = await favoritosDeUsuario(req.authUser.id);
+    const yaTiene = new Set(actuales.ids);
+    const aAgregar = existen.filter(a => !yaTiene.has(a.id));
+
+    if (aAgregar.length) {
+      const { error } = await supabase
+        .from("favoritos")
+        .insert(aAgregar.map(a => ({ usuario_id: req.authUser.id, alojamiento_id: a.id })));
+      if (error && !/duplicate/i.test(error.message)) throw error;
+    }
+    res.json({ ok: true, agregados: aAgregar.length });
+  } catch (err) {
+    console.error("Error POST /api/favoritos/sync:", err.message);
+    if (esTablaFaltante(err)) return res.status(503).json({ error: MIGRACION_PENDIENTE });
+    res.status(500).json({ error: "Error al sincronizar favoritos" });
+  }
+});
+
+// GET /api/mis-publicaciones — alojamientos del proveedor vinculado (sesión)
+app.get("/api/mis-publicaciones", requireAuth, async (req, res) => {
+  try {
+    const prov = await proveedorDelUsuario(req.authUser.id);
+    if (!prov) {
+      return res.status(503).json({ error: MIGRACION_PENDIENTE, sinProveedor: true });
+    }
+
+    const { data, error } = await supabase
+      .from("alojamientos")
+      .select(`
+        *,
+        barrios (nombre),
+        tipos_alojamiento (nombre),
+        alojamiento_caracteristicas (caracteristicas (nombre)),
+        alojamiento_universidades (universidades (nombre, latitud, longitud)),
+        imagenes_alojamiento (id, url, orden)
+      `)
+      .eq("proveedor_id", prov.id)
+      .order("id");
+    if (error) throw error;
+
+    const result = data.map(row => {
+      const t = transformAlojamiento(row);
+      return t;
+    });
+    res.json({ proveedor: prov, alojamientos: result });
+  } catch (err) {
+    console.error("Error GET /api/mis-publicaciones:", err.message);
+    res.status(500).json({ error: "Error al obtener tus publicaciones" });
+  }
+});
 
 // GET /api/alojamientos — lista completa con JOINs
 app.get("/api/alojamientos", async (req, res) => {
@@ -370,65 +781,20 @@ app.post("/api/contacto", async (req, res) => {
 // ============================================================
 
 // POST /api/proveedores/login — buscar o crear proveedor por email
-app.post("/api/proveedores/login", async (req, res) => {
-  const { nombre, tipo, email, telefono } = req.body;
-
-  if (!nombre || !tipo || !email || !telefono) {
-    return res.status(400).json({ error: "Faltan campos obligatorios: nombre, tipo, email, telefono" });
-  }
-
+// DEPRECADO: el login real es POST /api/auth/login. Este endpoint se mantiene
+// solo por compatibilidad: exige sesión válida y devuelve el proveedor
+// vinculado a esa cuenta (nunca crea cuentas sin contraseña como antes).
+app.post("/api/proveedores/login", requireAuth, async (req, res) => {
   try {
-    // Buscar si ya existe un proveedor con ese email
-    let { data: proveedor, error } = await supabase
-      .from("proveedores")
-      .select("id, nombre_comercial, email, telefono, whatsapp, tipo_proveedor_id")
-      .eq("email", email)
-      .single();
-
-    if (error && error.code !== "PGRST116") throw error;
-
-    if (proveedor) {
-      // Actualizar datos por si cambiaron
-      await supabase
-        .from("proveedores")
-        .update({ nombre_comercial: nombre, telefono, whatsapp: telefono })
-        .eq("id", proveedor.id);
-      proveedor.nombre_comercial = nombre;
-      proveedor.telefono = telefono;
-      proveedor.whatsapp = telefono;
-      return res.json({ ...proveedor, tipo });
+    const perfil = await asegurarPerfil(req.authUser);
+    const prov = await proveedorDelUsuario(req.authUser.id);
+    if (!prov) {
+      return res.status(404).json({ error: "Tu cuenta todavía no tiene un perfil de proveedor vinculado", sinProveedor: true });
     }
-
-    // Buscar tipo_proveedor_id
-    const { data: tipos } = await supabase
-      .from("tipos_proveedor")
-      .select("id")
-      .eq("nombre", tipo)
-      .single();
-
-    const tipoProveedorId = tipos?.id || 1;
-
-    // Crear nuevo proveedor
-    const { data: nuevo, error: insertError } = await supabase
-      .from("proveedores")
-      .insert({
-        nombre_comercial: nombre,
-        email,
-        telefono,
-        whatsapp: telefono,
-        tipo_proveedor_id: tipoProveedorId,
-        rating: 0,
-        cobertura: "",
-        descripcion: ""
-      })
-      .select("id, nombre_comercial, email, telefono, whatsapp, tipo_proveedor_id")
-      .single();
-
-    if (insertError) throw insertError;
-    res.status(201).json({ ...nuevo, tipo });
+    res.json({ ...prov, nombre_comercial: perfil?.nombre || prov.nombre_comercial });
   } catch (err) {
     console.error("Error POST /api/proveedores/login:", err.message);
-    res.status(500).json({ error: "Error al iniciar sesión" });
+    res.status(500).json({ error: "Error al obtener el proveedor" });
   }
 });
 
@@ -494,15 +860,45 @@ app.get("/api/proveedores/:id/alojamientos", async (req, res) => {
   }
 });
 
-// POST /api/alojamientos — crear alojamiento
-app.post("/api/alojamientos", async (req, res) => {
-  const { proveedor_id, titulo, tipo, precio_mensual, barrio, habitaciones, banos, descripcion, calle, referencia, latitud, longitud, wifi, amoblado, cochera, balcon, calefaccion, aire, parrilla, universidad, caracteristicas } = req.body;
+// POST /api/alojamientos — crear alojamiento (requiere sesión; el dueño
+// siempre es el proveedor vinculado a la cuenta autenticada)
+app.post("/api/alojamientos", requireAuth, async (req, res) => {
+  const { titulo, tipo, precio_mensual, barrio, habitaciones, banos, descripcion, calle, referencia, latitud, longitud, wifi, amoblado, cochera, balcon, calefaccion, aire, parrilla, universidad, caracteristicas } = req.body;
 
-  if (!proveedor_id || !titulo || !precio_mensual) {
-    return res.status(400).json({ error: "Faltan campos obligatorios: proveedor_id, titulo, precio_mensual" });
+  if (!titulo || !precio_mensual) {
+    return res.status(400).json({ error: "Faltan campos obligatorios: titulo, precio_mensual" });
   }
 
   try {
+    const perfil = await asegurarPerfil(req.authUser);
+    let prov = await proveedorDelUsuario(req.authUser.id);
+
+    // Si la cuenta no tiene perfil de proveedor, se crea uno como propietario
+    if (!prov) {
+      const { data: nuevo, error: errProv } = await supabase
+        .from("proveedores")
+        .insert({
+          nombre_comercial: perfil?.nombre || (req.authUser.email || "").split("@")[0],
+          email: req.authUser.email,
+          telefono: perfil?.telefono || "",
+          whatsapp: (perfil?.telefono || "").replace(/\s/g, ""),
+          tipo_proveedor_id: 1,
+          rating: 0,
+          cobertura: "",
+          descripcion: "",
+          usuario_id: req.authUser.id
+        })
+        .select("id")
+        .single();
+      if (errProv) {
+        if (/usuario_id|Could not find/i.test(errProv.message || "")) {
+          return res.status(503).json({ error: MIGRACION_PENDIENTE });
+        }
+        throw errProv;
+      }
+      prov = nuevo;
+    }
+    const proveedor_id = prov.id;
     // Resolver barrio_id
     let barrioId = null;
     if (barrio) {
@@ -581,10 +977,15 @@ app.post("/api/alojamientos", async (req, res) => {
   }
 });
 
-// PUT /api/alojamientos/:id — editar alojamiento
-app.put("/api/alojamientos/:id", async (req, res) => {
+// PUT /api/alojamientos/:id — editar alojamiento (solo el dueño)
+app.put("/api/alojamientos/:id", requireAuth, async (req, res) => {
   const { titulo, tipo, precio_mensual, barrio, habitaciones, banos, descripcion, calle, referencia, latitud, longitud, wifi, amoblado, cochera, universidad, caracteristicas } = req.body;
   const id = req.params.id;
+
+  const dueño = await esDueñoDeAlojamiento(req.authUser.id, id);
+  if (!dueño) {
+    return res.status(403).json({ error: "No tenés permiso para editar este alojamiento" });
+  }
 
   try {
     // Resolver barrio_id
@@ -698,9 +1099,15 @@ app.put("/api/alojamientos/:id", async (req, res) => {
   }
 });
 
-// DELETE /api/alojamientos/:id — eliminar alojamiento
-app.delete("/api/alojamientos/:id", async (req, res) => {
+// DELETE /api/alojamientos/:id — eliminar alojamiento (solo el dueño)
+app.delete("/api/alojamientos/:id", requireAuth, async (req, res) => {
   const id = req.params.id;
+
+  const dueño = await esDueñoDeAlojamiento(req.authUser.id, id);
+  if (!dueño) {
+    return res.status(403).json({ error: "No tenés permiso para eliminar este alojamiento" });
+  }
+
   try {
     await supabase.from("alojamiento_caracteristicas").delete().eq("alojamiento_id", id);
     await supabase.from("alojamiento_universidades").delete().eq("alojamiento_id", id);
@@ -861,12 +1268,21 @@ app.get("/api/proveedores/:id/fletes", async (req, res) => {
   }
 });
 
-// POST /api/fletes — crear servicio de transporte
-app.post("/api/fletes", async (req, res) => {
+// POST /api/fletes — crear servicio de transporte (solo el dueño)
+app.post("/api/fletes", requireAuth, async (req, res) => {
   const { proveedor_id, nombre_comercial, tipo_vehiculo, cobertura, telefono, email, whatsapp } = req.body;
 
   if (!proveedor_id || !nombre_comercial) {
     return res.status(400).json({ error: "Faltan campos obligatorios: proveedor_id, nombre_comercial" });
+  }
+
+  try {
+    const prov = await proveedorDelUsuario(req.authUser.id);
+    if (!prov || prov.id !== Number(proveedor_id)) {
+      return res.status(403).json({ error: "No tenés permiso para modificar este proveedor" });
+    }
+  } catch (err) {
+    return res.status(503).json({ error: MIGRACION_PENDIENTE });
   }
 
   try {
@@ -907,10 +1323,19 @@ app.post("/api/fletes", async (req, res) => {
   }
 });
 
-// PUT /api/fletes/:id — editar servicio de transporte
-app.put("/api/fletes/:id", async (req, res) => {
+// PUT /api/fletes/:id — editar servicio de transporte (solo el dueño)
+app.put("/api/fletes/:id", requireAuth, async (req, res) => {
   const { nombre_comercial, tipo_vehiculo, cobertura, telefono, email, whatsapp } = req.body;
   const id = req.params.id;
+
+  try {
+    const prov = await proveedorDelUsuario(req.authUser.id);
+    if (!prov || prov.id !== Number(id)) {
+      return res.status(403).json({ error: "No tenés permiso para editar este servicio" });
+    }
+  } catch (err) {
+    return res.status(503).json({ error: MIGRACION_PENDIENTE });
+  }
 
   try {
     // Actualizar datos del proveedor
@@ -951,9 +1376,19 @@ app.put("/api/fletes/:id", async (req, res) => {
   }
 });
 
-// DELETE /api/fletes/:id — eliminar servicio de transporte
-app.delete("/api/fletes/:id", async (req, res) => {
+// DELETE /api/fletes/:id — eliminar servicio de transporte (solo el dueño)
+app.delete("/api/fletes/:id", requireAuth, async (req, res) => {
   const id = req.params.id;
+
+  try {
+    const prov = await proveedorDelUsuario(req.authUser.id);
+    if (!prov || prov.id !== Number(id)) {
+      return res.status(403).json({ error: "No tenés permiso para eliminar este servicio" });
+    }
+  } catch (err) {
+    return res.status(503).json({ error: MIGRACION_PENDIENTE });
+  }
+
   try {
     await supabase.from("proveedor_vehiculos").delete().eq("proveedor_id", id);
     await supabase.from("proveedores").delete().eq("id", id);

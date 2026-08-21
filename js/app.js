@@ -68,6 +68,53 @@ let favorites = JSON.parse(localStorage.getItem("forania_favs") || "[]");
 let compare = [];
 let filteredProps = [...PROPERTIES];
 
+/* ---------- Sesión ---------- */
+let session = JSON.parse(localStorage.getItem("forania_session") || "null");
+let currentUser = JSON.parse(localStorage.getItem("forania_user") || "null");
+let linkedProvider = null;
+
+function saveSession(s, u) {
+  session = s;
+  currentUser = u;
+  localStorage.setItem("forania_session", JSON.stringify(s));
+  localStorage.setItem("forania_user", JSON.stringify(u));
+}
+function clearSession() {
+  session = null;
+  currentUser = null;
+  linkedProvider = null;
+  localStorage.removeItem("forania_session");
+  localStorage.removeItem("forania_user");
+}
+function estaLogueado() { return !!(session?.access_token && currentUser); }
+function authHeaders(extra = {}) {
+  return session?.access_token ? { Authorization: `Bearer ${session.access_token}`, ...extra } : { ...extra };
+}
+
+async function refrescarSesion() {
+  if (!session?.refresh_token) return false;
+  try {
+    const res = await fetch(`${API_URL}/auth/refrescar`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: session.refresh_token })
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    saveSession(data.session, currentUser);
+    return true;
+  } catch { return false; }
+}
+
+// fetch con token automático; si expiró, intenta refrescar y reintenta una vez
+async function apiFetch(url, opts = {}) {
+  let res = await fetch(url, { ...opts, headers: authHeaders(opts.headers || {}) });
+  if (res.status === 401 && (await refrescarSesion())) {
+    res = await fetch(url, { ...opts, headers: authHeaders(opts.headers || {}) });
+  }
+  return res;
+}
+
 /* ---------- Helpers ---------- */
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
@@ -128,8 +175,8 @@ function goTo(page) {
   document.body.classList.remove("nav-open");
   window.scrollTo({ top: 0, behavior: "smooth" });
   if (page === "alquileres") renderCatalog(filteredProps);
-  if (page === "favoritos") renderFavorites();
-  if (page === "perfil") { $("#profFavs").textContent = favorites.length; $("#profComp").textContent = compare.length; }
+if (page === "favoritos") { if (estaLogueado()) recargarFavoritosServidor().then(renderFavorites); renderFavorites(); }
+if (page === "perfil") { $("#profFavs").textContent = favorites.length; $("#profComp").textContent = compare.length; updateAuthUI(); }
   if (page === "publicar") setTimeout(() => initPublishMap(), 150);
 }
 
@@ -188,11 +235,26 @@ function renderFeatured() {
 }
 
 /* ---------- Favoritos ---------- */
-function toggleFav(id) {
+async function toggleFav(id) {
   const i = favorites.indexOf(id);
-  if (i >= 0) { favorites.splice(i, 1); toast("Quitado de favoritos"); }
-  else { favorites.push(id); toast("Agregado a favoritos &#9829;"); }
-  localStorage.setItem("forania_favs", JSON.stringify(favorites));
+  const quitando = i >= 0;
+  if (quitando) { favorites.splice(i, 1); } else { favorites.push(id); }
+
+  if (estaLogueado()) {
+    try {
+      const res = await apiFetch(`${API_URL}/favoritos/${id}`, { method: quitando ? "DELETE" : "POST" });
+      if (!res.ok) throw new Error("fallo");
+      if (quitando) toast("Quitado de favoritos");
+      else toast("Agregado a favoritos &#9829;");
+    } catch {
+      if (quitando) favorites.push(id); else favorites.splice(favorites.indexOf(id), 1);
+      toast("No se pudo actualizar el favorito");
+    }
+  } else {
+    localStorage.setItem("forania_favs", JSON.stringify(favorites));
+    if (quitando) toast("Quitado de favoritos");
+    else toast("Agregado a favoritos &#9829;");
+  }
   $("#favCountTop").textContent = favorites.length;
   renderFeatured();
   $$("#catalogGrid").length && renderCatalog(filteredProps);
@@ -210,7 +272,16 @@ function renderFavorites() {
   const g = $("#favGrid");
   const list = PROPERTIES.filter(p => favorites.includes(p.id));
   g.innerHTML = "";
-  $("#favMsg").textContent = list.length ? `${list.length} propiedades guardadas` : "Todavía no tenés favoritos. Tocá el corazón en cualquier propiedad.";
+  const msg = $("#favMsg");
+  if (estaLogueado()) {
+    msg.textContent = list.length
+      ? `${list.length} propiedades guardadas en tu cuenta`
+      : "Todavía no tenés favoritos guardados en tu cuenta. Tocá el corazón en cualquier propiedad.";
+  } else {
+    msg.textContent = list.length
+      ? `${list.length} favoritos locales de este navegador. Iniciá sesión para guardarlos en tu cuenta.`
+      : "Todavía no tenés favoritos. Tocá el corazón en cualquier propiedad.";
+  }
   list.forEach(p => propCard(p, g));
   cardEvents(g);
 }
@@ -336,13 +407,13 @@ function openDetail(id) {
   } else {
     thumbSlots.push({ op: ".85" }, { op: ".7" });
   }
-  const thumbsHTML = thumbSlots.map(t =>
+  const thumbsHTML = thumbSlots.map((t, i) =>
     t.src
-      ? `<div><img src="${t.src}" alt="" loading="lazy"></div>`
+      ? `<div class="lb-thumb" data-lb="${i + 1}"><img src="${t.src}" alt="" loading="lazy"></div>`
       : `<div style="${bg(p.img)}${t.op ? `;opacity:${t.op}` : ""}"></div>`
   ).join("");
   const galleryHTML = `<div class="gallery">
-      <div class="gallery-main"${hasImgs ? "" : ` style="${bg(p.img)}"`}>${hasImgs ? `<img src="${p.imgs[0]}" alt="${p.nombre}">` : ""}</div>
+      <div class="gallery-main"${hasImgs ? ' data-lb="0"' : ""}${hasImgs ? "" : ` style="${bg(p.img)}"`}>${hasImgs ? `<img src="${p.imgs[0]}" alt="${p.nombre}">` : ""}</div>
       <div class="gallery-side">${thumbsHTML}</div>
     </div>`;
 
@@ -405,9 +476,78 @@ function openDetail(id) {
   $("#modalContent").querySelector("[data-cmp]").addEventListener("click", () => {
     toggleCompare(p.id);
   });
+  if (hasImgs) {
+    $("#modalContent").querySelectorAll("[data-lb]").forEach(el => {
+      el.addEventListener("click", () => openLightbox(p.imgs, +el.dataset.lb));
+    });
+  }
 }
 $("#modalClose").addEventListener("click", () => { $("#modal").classList.remove("show"); $("#overlay").classList.remove("show"); });
 $("#overlay").addEventListener("click", () => { $("#modal").classList.remove("show"); $("#overlay").classList.remove("show"); });
+
+/* ---------- Lightbox (visor ampliado) ---------- */
+const lbState = { imgs: [], idx: 0, scale: 1 };
+
+function lbApplyZoom() {
+  $("#lbImg").style.transform = `scale(${lbState.scale})`;
+}
+
+function lbShow(i) {
+  const n = lbState.imgs.length;
+  if (!n) return;
+  lbState.idx = ((i % n) + n) % n;
+  lbState.scale = 1;
+  lbApplyZoom();
+  $("#lbImg").src = lbState.imgs[lbState.idx];
+  $("#lbCounter").textContent = `${lbState.idx + 1} / ${n}`;
+  const single = n <= 1;
+  $("#lbPrev").style.display = single ? "none" : "";
+  $("#lbNext").style.display = single ? "none" : "";
+}
+
+function openLightbox(imgs, i) {
+  if (!Array.isArray(imgs) || !imgs.length) return;
+  lbState.imgs = imgs;
+  $("#lightbox").classList.add("show");
+  document.body.style.overflow = "hidden";
+  lbShow(i);
+}
+
+function closeLightbox() {
+  $("#lightbox").classList.remove("show");
+  document.body.style.overflow = "";
+}
+
+$("#lbClose").addEventListener("click", closeLightbox);
+$("#lbPrev").addEventListener("click", () => lbShow(lbState.idx - 1));
+$("#lbNext").addEventListener("click", () => lbShow(lbState.idx + 1));
+$("#lightbox").addEventListener("click", (e) => {
+  if (e.target === e.currentTarget) closeLightbox();
+});
+$("#lightbox").addEventListener("wheel", (e) => {
+  e.preventDefault();
+  lbState.scale = Math.min(4, Math.max(1, lbState.scale + (e.deltaY < 0 ? 0.25 : -0.25)));
+  lbApplyZoom();
+}, { passive: false });
+
+document.addEventListener("keydown", (e) => {
+  if (!$("#lightbox").classList.contains("show")) return;
+  if (e.key === "Escape") closeLightbox();
+  else if (e.key === "ArrowLeft") lbShow(lbState.idx - 1);
+  else if (e.key === "ArrowRight") lbShow(lbState.idx + 1);
+});
+
+let lbTouchX = null;
+$("#lightbox").addEventListener("touchstart", (e) => {
+  lbTouchX = e.touches[0].clientX;
+}, { passive: true });
+$("#lightbox").addEventListener("touchend", (e) => {
+  if (lbTouchX !== null && lbState.scale <= 1) {
+    const dx = e.changedTouches[0].clientX - lbTouchX;
+    if (Math.abs(dx) > 50) lbShow(lbState.idx + (dx < 0 ? 1 : -1));
+  }
+  lbTouchX = null;
+}, { passive: true });
 
 /* ---------- Comparador ---------- */
 function toggleCompare(id) {
@@ -688,6 +828,199 @@ $("#chatbotInput").addEventListener("keydown", (e) => {
 });
 
 $("#chatbotBack").addEventListener("click", closeChatbot);
+
+/* ---------- Mi Cuenta: login y registro ---------- */
+
+async function recargarFavoritosServidor() {
+  try {
+    const res = await apiFetch(`${API_URL}/favoritos`);
+    if (!res.ok) return;
+    const data = await res.json();
+    data.alojamientos.forEach(a => {
+      const i = PROPERTIES.findIndex(p => p.id === a.id);
+      if (i >= 0) PROPERTIES[i] = a; else PROPERTIES.push(a);
+    });
+    favorites = data.ids.map(Number);
+  } catch { /* silencioso */ }
+}
+
+async function sincronizarFavoritosLocales() {
+  const locales = JSON.parse(localStorage.getItem("forania_favs") || "[]");
+  if (locales.length) {
+    try {
+      const res = await apiFetch(`${API_URL}/favoritos/sync`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: locales })
+      });
+      if (res.ok) localStorage.removeItem("forania_favs");
+    } catch { /* se reintenta en el próximo login */ }
+  }
+  await recargarFavoritosServidor();
+}
+
+function updateAuthUI() {
+  const logged = estaLogueado();
+  $("#btnCuenta").style.display = logged ? "none" : "";
+  $("#userChip").style.display = logged ? "" : "none";
+  $$(".js-cuenta-mob").forEach(b => b.style.display = logged ? "none" : "");
+  if (logged) {
+    const n = (currentUser.nombre || currentUser.email || "Usuario").trim();
+    $("#userName").textContent = n.split(" ")[0];
+    $("#userAvatar").textContent = (n[0] || "U").toUpperCase();
+    const pn = $("#profNombre");
+    if (pn) pn.textContent = currentUser.nombre || "Usuario";
+    const pe = $("#profEmail");
+    if (pe) pe.textContent = currentUser.email || "";
+    const pa = $("#profAvatar");
+    if (pa) pa.textContent = (n[0] || "U").toUpperCase();
+  } else {
+    const pn = $("#profNombre");
+    if (pn) pn.textContent = "Estudiante";
+    const pe = $("#profEmail");
+    if (pe) pe.textContent = "Iniciá sesión para guardar tus favoritos en la nube";
+  }
+  renderProviderGate();
+}
+
+const cuentaModal = () => $("#cuentaModal");
+
+function openCuenta(tab = "login") {
+  renderCuenta(tab);
+  cuentaModal().classList.add("show");
+  $("#overlayCuenta").classList.add("show");
+}
+function closeCuenta() {
+  cuentaModal().classList.remove("show");
+  $("#overlayCuenta").classList.remove("show");
+}
+
+function renderCuenta(tab) {
+  $("#cuentaContent").innerHTML = `
+    <div class="detail-body">
+      <h2 style="margin-bottom:12px">Mi cuenta</h2>
+      <div class="cuenta-tabs">
+        <button class="cuenta-tab ${tab === "login" ? "active" : ""}" data-tab="login">Iniciar sesi&oacute;n</button>
+        <button class="cuenta-tab ${tab === "registro" ? "active" : ""}" data-tab="registro">Crear cuenta</button>
+      </div>
+      <form class="form" id="formLogin" style="${tab === "login" ? "" : "display:none"}">
+        <label>Email<input type="email" id="logEmail" placeholder="tucorreo@gmail.com" required></label>
+        <label>Contrase&ntilde;a<input type="password" id="logPass" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" required minlength="6"></label>
+        <p class="form-error" id="logErr"></p>
+        <button type="submit" class="btn btn-primary btn-lg">Entrar</button>
+      </form>
+      <form class="form" id="formRegistro" style="${tab === "registro" ? "" : "display:none"}">
+        <label>Nombre completo<input type="text" id="regNombre" placeholder="Ej: Juan P&eacute;rez" required></label>
+        <label>Email<input type="email" id="regEmail" placeholder="tucorreo@gmail.com" required></label>
+        <label>Contrase&ntilde;a<input type="password" id="regPass" placeholder="M&iacute;nimo 6 caracteres" required minlength="6"></label>
+        <label>Confirmar contrase&ntilde;a<input type="password" id="regPass2" placeholder="Repet&iacute; la contrase&ntilde;a" required></label>
+        <p class="form-error" id="regErr"></p>
+        <button type="submit" class="btn btn-primary btn-lg">Crear mi cuenta</button>
+      </form>
+    </div>`;
+  $$("#cuentaContent .cuenta-tab").forEach(b =>
+    b.addEventListener("click", () => renderCuenta(b.dataset.tab))
+  );
+  $("#formLogin").addEventListener("submit", handleLogin);
+  $("#formRegistro").addEventListener("submit", handleRegistro);
+}
+
+async function postAuthSuccess(data) {
+  saveSession(data.session, data.usuario);
+  closeCuenta();
+  document.body.classList.remove("nav-open");
+  updateAuthUI();
+  toast(`¡Hola, ${(data.usuario.nombre || "").split(" ")[0]}!`);
+  await sincronizarFavoritosLocales();
+  await initProviderSection();
+  $("#favCountTop").textContent = favorites.length;
+  renderFeatured();
+  if ($("#favoritos").classList.contains("active")) renderFavorites();
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const errEl = $("#logErr");
+  errEl.textContent = "";
+  const email = $("#logEmail").value.trim();
+  const password = $("#logPass").value;
+  try {
+    const res = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { errEl.textContent = data.error || "No se pudo iniciar sesión"; return; }
+    await postAuthSuccess(data);
+  } catch {
+    errEl.textContent = "Error de conexión con el servidor";
+  }
+}
+
+async function handleRegistro(e) {
+  e.preventDefault();
+  const errEl = $("#regErr");
+  errEl.textContent = "";
+  const nombre = $("#regNombre").value.trim();
+  const email = $("#regEmail").value.trim();
+  const password = $("#regPass").value;
+  const password2 = $("#regPass2").value;
+
+  if (nombre.length < 2) { errEl.textContent = "Ingresá tu nombre"; return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = "El email no es válido"; return; }
+  if (password.length < 6) { errEl.textContent = "La contraseña debe tener al menos 6 caracteres"; return; }
+  if (password !== password2) { errEl.textContent = "Las contraseñas no coinciden"; return; }
+
+  try {
+    const res = await fetch(`${API_URL}/auth/registrar`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nombre, email, password })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { errEl.textContent = data.error || "No se pudo crear la cuenta"; return; }
+    if (data.requiereConfirmacion) {
+      closeCuenta();
+      toast("Cuenta creada. Revisá tu email para confirmarla.");
+      return;
+    }
+    await postAuthSuccess(data);
+  } catch {
+    errEl.textContent = "Error de conexión con el servidor";
+  }
+}
+
+$("#btnCuenta").addEventListener("click", () => openCuenta("login"));
+$$(".js-cuenta-mob").forEach(b => b.addEventListener("click", () => openCuenta("login")));
+$("#cuentaClose").addEventListener("click", closeCuenta);
+$("#overlayCuenta").addEventListener("click", closeCuenta);
+
+$("#userBtn").addEventListener("click", (e) => {
+  e.stopPropagation();
+  $("#userMenu").classList.toggle("open");
+});
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".user-chip")) $("#userMenu")?.classList.remove("open");
+});
+
+$("#btnLogout").addEventListener("click", async () => {
+  clearSession();
+  providerLoggedIn = false;
+  providerData = null;
+  providerListings = [];
+  providerTransportList = [];
+  localStorage.removeItem("forania_provider");
+  favorites = JSON.parse(localStorage.getItem("forania_favs") || "[]");
+  $("#favCountTop").textContent = favorites.length;
+  $("#userMenu").classList.remove("open");
+  updateAuthUI();
+  showProviderLogin();
+  renderFeatured();
+  if ($("#favoritos").classList.contains("active")) renderFavorites();
+  goTo("home");
+  toast("Sesión cerrada");
+});
 
 /* ---------- Presupuesto Fletes ---------- */
 function openQuoteModal() {
@@ -1133,11 +1466,17 @@ $("#publishForm").addEventListener("submit", async (e) => {
   submitBtn.textContent = "Publicando...";
 
   try {
-    const res = await fetch(`${API_URL}/alojamientos`, {
+    if (!estaLogueado()) {
+      toast("Iniciá sesión para publicar propiedades");
+      openCuenta("login");
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Publicar propiedad";
+      return;
+    }
+    const res = await apiFetch(`${API_URL}/alojamientos`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        proveedor_id: providerData ? providerData.id : 1,
         titulo,
         tipo,
         precio_mensual: precio,
@@ -1175,8 +1514,9 @@ $("#publishForm").addEventListener("submit", async (e) => {
       }
 
       try {
-        const imgRes = await fetch(`${API_URL}/alojamientos/${alojId}/imagenes`, {
+        const imgRes = await apiFetch(`${API_URL}/alojamientos/${alojId}/imagenes`, {
           method: "POST",
+          headers: authHeaders(),
           body: formData
         });
 
@@ -1240,6 +1580,7 @@ async function init() {
   renderFletes();
   renderCatalog(PROPERTIES);
   $("#favCountTop").textContent = favorites.length;
+  updateAuthUI();
   initProviderSection();
   initCarousel();
 }
@@ -1252,12 +1593,105 @@ let providerListings = [];
 let providerTransportList = [];
 
 async function initProviderSection() {
-  const saved = JSON.parse(localStorage.getItem("forania_provider") || "null");
-  if (saved) {
-    providerData = saved;
+  if (!estaLogueado()) { renderProviderGate(); return; }
+  try {
+    const res = await apiFetch(`${API_URL}/auth/perfil`);
+    if (res.ok) {
+      const data = await res.json();
+      linkedProvider = data.proveedor || null;
+    } else {
+      linkedProvider = null;
+    }
+  } catch {
+    linkedProvider = null;
+  }
+
+  if (linkedProvider) {
+    providerData = {
+      id: linkedProvider.id,
+      nombre: linkedProvider.nombre_comercial,
+      tipo: linkedProvider.tipo_proveedor_id === 3 ? "transportista" : "propietario",
+      email: currentUser?.email || "",
+      tel: linkedProvider.telefono || "",
+      whatsapp: linkedProvider.whatsapp || ""
+    };
+    if (linkedProvider.tipo_proveedor_id === 2) providerData.tipo = "inmobiliaria";
     providerLoggedIn = true;
+    saveProviderData();
     await loadProviderDataFromAPI();
     showProviderPanel();
+  } else {
+    providerLoggedIn = false;
+    providerData = null;
+    renderProviderGate();
+  }
+}
+
+// Controla qué se muestra en la sección Proveedores según el estado de sesión
+function renderProviderGate() {
+  const loginBox = $("#providerLogin");
+  const panel = $("#providerPanel");
+  if (!loginBox) return;
+
+  // Caso 3: con proveedor vinculado -> el panel manda
+  if (estaLogueado() && linkedProvider) return;
+
+  panel.style.display = "none";
+
+  // Caso 1: sin sesión -> invitación a entrar
+  if (!estaLogueado()) {
+    loginBox.style.display = "";
+    loginBox.innerHTML = `
+      <h3>Accedé con tu cuenta</h3>
+      <p class="muted" style="margin-bottom:16px">Para publicar y gestionar propiedades o servicios de mudanza necesitás una sesión iniciada.</p>
+      <button class="btn btn-primary btn-lg" id="gateLoginBtn">Iniciar sesi&oacute;n / Crear cuenta</button>`;
+    $("#gateLoginBtn")?.addEventListener("click", () => openCuenta("login"));
+    return;
+  }
+
+  // Caso 2: con sesión pero sin perfil de proveedor -> formulario para activarlo
+  loginBox.style.display = "";
+  loginBox.innerHTML = `
+    <h3>Activá tu perfil de proveedor</h3>
+    <p class="muted" style="margin-bottom:16px">Hola ${currentUser?.nombre?.split(" ")[0] || ""}, vinculá tu cuenta con un perfil para publicar.</p>
+    <form class="form" id="vincularForm">
+      <div class="form-row">
+        <label>Nombre o Empresa<input type="text" id="vinNombre" placeholder="Ej: Inmobiliaria La Rioja" required></label>
+        <label>Tipo de proveedor<select id="vinTipo" required>
+          <option value="">Seleccionar...</option>
+          <option value="propietario">Propietario</option>
+          <option value="inmobiliaria">Inmobiliaria</option>
+          <option value="transportista">Transportista / Fletero</option>
+        </select></label>
+      </div>
+      <label>Tel&eacute;fono / WhatsApp<input type="tel" id="vinTel" placeholder="+54 9 3804 ..." required></label>
+      <p class="form-error" id="vinErr"></p>
+      <button type="submit" class="btn btn-primary btn-lg">Crear mi perfil y entrar al panel</button>
+    </form>`;
+  $("#vincularForm").addEventListener("submit", handleVincular);
+}
+
+async function handleVincular(e) {
+  e.preventDefault();
+  const errEl = $("#vinErr");
+  errEl.textContent = "";
+  const nombre = $("#vinNombre").value.trim();
+  const tipo = $("#vinTipo").value;
+  const telefono = $("#vinTel").value.trim();
+  if (!tipo) { errEl.textContent = "Seleccioná un tipo de proveedor"; return; }
+
+  try {
+    const res = await apiFetch(`${API_URL}/proveedores/vincular`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nombre, tipo, telefono })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { errEl.textContent = data.error || "No se pudo crear el perfil"; return; }
+    toast("¡Perfil de proveedor creado!");
+    await initProviderSection();
+  } catch {
+    errEl.textContent = "Error de conexión";
   }
 }
 
@@ -1614,7 +2048,7 @@ async function addProviderListing() {
       universidad: $("#ppUni").value
     };
     try {
-      const res = await fetch(`${API_URL}/alojamientos`, {
+      const res = await apiFetch(`${API_URL}/alojamientos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -1623,8 +2057,9 @@ async function addProviderListing() {
       const result = await res.json().catch(() => ({}));
 
       if (imgState && imgState.hasNew() && result.id) {
-        const imgRes = await fetch(`${API_URL}/alojamientos/${result.id}/imagenes`, {
+        const imgRes = await apiFetch(`${API_URL}/alojamientos/${result.id}/imagenes`, {
           method: "POST",
+          headers: authHeaders(),
           body: imgState.buildFormData()
         });
         if (!imgRes.ok) toast("Propiedad publicada, pero hubo un error al subir las fotos");
@@ -1679,20 +2114,24 @@ async function editProviderListing(idx) {
       universidad: $("#ppUni").value
     };
     try {
-      const res = await fetch(`${API_URL}/alojamientos/${p.id}`, {
+      const res = await apiFetch(`${API_URL}/alojamientos/${p.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error("Error al actualizar");
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Error al actualizar");
+      }
 
       if (imgState) {
         for (const imgId of imgState.removedImageIds) {
-          await fetch(`${API_URL}/imagenes/${imgId}`, { method: "DELETE" });
+          await apiFetch(`${API_URL}/imagenes/${imgId}`, { method: "DELETE" });
         }
         if (imgState.hasNew()) {
-          const imgRes = await fetch(`${API_URL}/alojamientos/${p.id}/imagenes`, {
+          const imgRes = await apiFetch(`${API_URL}/alojamientos/${p.id}/imagenes`, {
             method: "POST",
+            headers: authHeaders(),
             body: imgState.buildFormData()
           });
           if (!imgRes.ok) toast("Propiedad actualizada, pero hubo un error al subir las fotos");
@@ -1714,13 +2153,17 @@ async function deleteProviderListing(idx) {
   const p = providerListings[idx];
   if (!confirm("¿Eliminar esta propiedad?")) return;
   try {
-    await fetch(`${API_URL}/alojamientos/${p.id}`, { method: "DELETE" });
+    const res = await apiFetch(`${API_URL}/alojamientos/${p.id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || "Error al eliminar");
+    }
     await loadProviderDataFromAPI();
     renderProviderListings();
     updateProviderStats();
     toast("Propiedad eliminada");
   } catch (err) {
-    toast("Error al eliminar propiedad");
+    toast(err.message.includes("permiso") ? err.message : "Error al eliminar propiedad");
     console.error(err);
   }
 }
@@ -1739,7 +2182,7 @@ async function addProviderTransport() {
       whatsapp: providerData.whatsapp || ""
     };
     try {
-      const res = await fetch(`${API_URL}/fletes`, {
+      const res = await apiFetch(`${API_URL}/fletes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -1771,7 +2214,7 @@ async function editProviderTransport(idx) {
       whatsapp: providerData.whatsapp || ""
     };
     try {
-      const res = await fetch(`${API_URL}/fletes/${t.id}`, {
+      const res = await apiFetch(`${API_URL}/fletes/${t.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -1792,60 +2235,35 @@ async function deleteProviderTransport(idx) {
   const t = providerTransportList[idx];
   if (!confirm("¿Eliminar este servicio?")) return;
   try {
-    await fetch(`${API_URL}/fletes/${t.id}`, { method: "DELETE" });
+    const res = await apiFetch(`${API_URL}/fletes/${t.id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || "Error al eliminar");
+    }
     await loadProviderDataFromAPI();
     renderProviderTransport();
     updateProviderStats();
     toast("Servicio eliminado");
   } catch (err) {
-    toast("Error al eliminar servicio");
+    toast(err.message.includes("permiso") ? err.message : "Error al eliminar servicio");
     console.error(err);
   }
 }
 
-$("#providerLoginForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const form = e.target;
-  const nombre = form.querySelector('input[type="text"]').value;
-  const tipo = $("#providerType").value;
-  const email = form.querySelector('input[type="email"]').value;
-  const tel = form.querySelector('input[type="tel"]').value;
-  if (!tipo) { toast("Seleccioná un tipo de proveedor"); return; }
+// El login viejo por email fue reemplazado por el flujo de sesión real:
+// renderProviderGate() + handleVincular() gestionan esta sección.
 
-  try {
-    const res = await fetch(`${API_URL}/proveedores/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nombre, tipo, email, telefono: tel })
-    });
-    if (!res.ok) throw new Error("Error al iniciar sesión");
-    const prov = await res.json();
-    providerData = {
-      id: prov.id,
-      nombre: prov.nombre_comercial,
-      tipo,
-      email: prov.email,
-      tel: prov.telefono,
-      whatsapp: prov.whatsapp || tel.replace(/\s/g, "").replace("+", "")
-    };
-    providerLoggedIn = true;
-    saveProviderData();
-    await loadProviderDataFromAPI();
-    showProviderPanel();
-    toast(`Bienvenido, ${nombre}`);
-  } catch (err) {
-    toast("Error al iniciar sesión");
-    console.error(err);
-  }
-});
-
-$("#provLogout").addEventListener("click", () => {
+$("#provLogout").addEventListener("click", async () => {
+  clearSession();
   providerLoggedIn = false;
   providerData = null;
   providerListings = [];
   providerTransportList = [];
   localStorage.removeItem("forania_provider");
-  showProviderLogin();
+  favorites = JSON.parse(localStorage.getItem("forania_favs") || "[]");
+  $("#favCountTop").textContent = favorites.length;
+  updateAuthUI();
+  renderProviderGate();
   toast("Sesión cerrada");
 });
 
