@@ -282,7 +282,7 @@
     <div class="container section narrow">
       <h2 class="section-title">Publicá tu propiedad</h2>
       <p class="muted">Completá los datos y tu propiedad aparecerá en ForanIA.</p>
-      <form class="card form" id="publishForm" enctype="multipart/form-data">
+      <form class="card form" id="publishForm" enctype="multipart/form-data" novalidate>
         <h3 class="form-block-title">Datos básicos</h3>
         <div class="form-row">
           <label>Título<input type="text" id="pubTitulo" placeholder="Ej: Departamento moderno en Centro" required></label>
@@ -290,7 +290,7 @@
         </div>
         <div class="form-row">
           <label>Tipo<select id="pubTipo"><option value="departamento">Departamento</option><option value="habitacion">Habitación</option><option value="casa">Casa</option></select></label>
-          <label>Barrio<input type="text" id="pubBarrio" placeholder="Ej: Centro" required></label>
+          <label>Barrio<select id="pubBarrio"><option value="">Seleccionar barrio...</option></select></label>
         </div>
 
         <h3 class="form-block-title">Ubicación</h3>
@@ -298,8 +298,8 @@
           <label>Calle y número<input type="text" id="pubCalle" placeholder="Ej: San Martín 450" required></label>
           <label>Referencia<input type="text" id="pubReferencia" placeholder="Ej: frente a la plaza"></label>
         </div>
-        <label>URL de Google Maps <span class="required-badge">obligatoria</span><input type="url" id="pubGoogleMapsUrl" placeholder="Pegá el link de Google Maps de la ubicación exacta" required></label>
-        <p class="form-help">Pegá el link de Google Maps de la ubicación exacta de la propiedad</p>
+        <button type="button" class="btn btn-ghost" id="geocodeBtn" style="margin-bottom:8px">Buscar ubicación</button>
+        <div id="geocodeStatus" class="geocode-status" style="display:none"></div>
         <div id="publishMapPreview" class="publish-map-preview"></div>
         <div id="publishDistInfo" class="dist-info" style="display:none"></div>
 

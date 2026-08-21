@@ -12,17 +12,22 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
-// Servir archivos est├íticos del frontend
-app.use(express.static(path.join(__dirname, "..")));
+// Servir archivos estáticos del frontend
+app.use(express.static(path.join(__dirname, ".."), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith(".js")) res.setHeader("Content-Type", "application/javascript; charset=utf-8");
+    if (filePath.endsWith(".css")) res.setHeader("Content-Type", "text/css; charset=utf-8");
+  }
+}));
 
-// Multer: recibir archivos en bufferÕåàÕ¡ÿ (no disco local)
+// Multer: recibir archivos en buffer en memoria (no disco local)
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 // ============================================================
 // Helpers
 // ============================================================
 
-// F├│rmula Haversine: distancia en km entre dos coordenadas
+// Fórmula Haversine: distancia en km entre dos coordenadas
 function haversine(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -59,21 +64,52 @@ const IMGS = {
   12: "linear-gradient(135deg,#64748b,#1e293b)"
 };
 
-// Mapping de emojis por tipo de veh├¡culo
+// Mapping de emojis por tipo de vehículo
 const EMOJIS_VEHICULO = {
   "Camioneta": "\u{1F6FB}",
-  "Cami├│n peque├▒o": "\u{1F4E6}",
-  "Cami├│n mediano": "\u{1F69B}",
-  "Cami├│n grande": "\u{1F69A}"
+  "Camión pequeño": "\u{1F4E6}",
+  "Camión mediano": "\u{1F69B}",
+  "Camión grande": "\u{1F69A}"
 };
 
 // Mapping de gradientes para fletes
 const IMGS_FLETES = {
   "Camioneta": "linear-gradient(135deg,#06b6d4,#155e75)",
-  "Cami├│n peque├▒o": "linear-gradient(135deg,#6366f1,#312e81)",
-  "Cami├│n mediano": "linear-gradient(135deg,#f97316,#7c2d12)",
-  "Cami├│n grande": "linear-gradient(135deg,#10b981,#047857)"
+  "Camión pequeño": "linear-gradient(135deg,#6366f1,#312e81)",
+  "Camión mediano": "linear-gradient(135deg,#f97316,#7c2d12)",
+  "Camión grande": "linear-gradient(135deg,#10b981,#047857)"
 };
+
+// Normaliza nombres de características: recorta espacios y colapsa repetidos
+function normalizarCaracteristica(nombre) {
+  return String(nombre || "").trim().replace(/\s+/g, " ");
+}
+
+// Resuelve una lista de nombres a registros de la tabla caracteristicas.
+// Match case-insensitive para no crear "WiFi", "wifi" y "Wifi" como duplicados.
+// Si no existe, la crea. Nunca elimina registros de caracteristicas.
+async function resolverCaracteristicas(nombres) {
+  const limpios = [...new Set((nombres || []).map(normalizarCaracteristica).filter(Boolean))];
+  const { data: todas, error } = await supabase.from("caracteristicas").select("id, nombre");
+  if (error) throw error;
+  const mapa = new Map((todas || []).map(c => [c.nombre.trim().toLowerCase(), c]));
+  const resueltas = [];
+  for (const nombre of limpios) {
+    let c = mapa.get(nombre.toLowerCase());
+    if (!c) {
+      const { data: nueva, error: errInsert } = await supabase
+        .from("caracteristicas")
+        .insert({ nombre })
+        .select("id, nombre")
+        .single();
+      if (errInsert) throw errInsert;
+      c = nueva;
+      mapa.set(nombre.toLowerCase(), c);
+    }
+    resueltas.push(c);
+  }
+  return resueltas;
+}
 
 // ============================================================
 // Transformar datos de Supabase al formato del frontend
@@ -83,6 +119,10 @@ function transformAlojamiento(row) {
   const caracteristicas = (row.alojamiento_caracteristicas || [])
     .map(ac => ac.caracteristicas?.nombre)
     .filter(Boolean);
+
+  const imagenesOrdenadas = (row.imagenes_alojamiento || [])
+    .slice()
+    .sort((a, b) => a.orden - b.orden);
 
   const wifi = caracteristicas.includes("WiFi");
   const amoblado = caracteristicas.includes("Amoblado");
@@ -119,11 +159,12 @@ function transformAlojamiento(row) {
     cochera,
     servicios: caracteristicas,
     img: IMGS[row.id] || "linear-gradient(135deg,#8b5cf6,#4c1d95)",
-    imgs: (row.imagenes_alojamiento || [])
-      .sort((a, b) => a.orden - b.orden)
-      .map(img => img.url),
+    imgs: imagenesOrdenadas.map(img => img.url),
+    imgIds: imagenesOrdenadas.map(img => img.id),
     lat: row.latitud || null,
     lng: row.longitud || null,
+    calle: row.calle || "",
+    referencia: row.referencia || "",
     propietario: prop.nombre_comercial || "",
     propAv: iniciales(prop.nombre_comercial),
     tel: prop.telefono || "",
@@ -153,7 +194,7 @@ function transformFlete(row) {
 // Endpoints
 // ============================================================
 
-// GET /api/alojamientos ÔÇö lista completa con JOINs
+// GET /api/alojamientos — lista completa con JOINs
 app.get("/api/alojamientos", async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -180,7 +221,7 @@ app.get("/api/alojamientos", async (req, res) => {
   }
 });
 
-// GET /api/alojamientos/:id ÔÇö detalle individual
+// GET /api/alojamientos/:id — detalle individual
 app.get("/api/alojamientos/:id", async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -207,7 +248,7 @@ app.get("/api/alojamientos/:id", async (req, res) => {
   }
 });
 
-// GET /api/fletes ÔÇö transportistas con info de veh├¡culo
+// GET /api/fletes — transportistas con info de vehículo
 app.get("/api/fletes", async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -229,7 +270,7 @@ app.get("/api/fletes", async (req, res) => {
   }
 });
 
-// GET /api/fletes/:id ÔÇö detalle de un flete
+// GET /api/fletes/:id — detalle de un flete
 app.get("/api/fletes/:id", async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -252,7 +293,7 @@ app.get("/api/fletes/:id", async (req, res) => {
   }
 });
 
-// GET /api/referencias ÔÇö datos de tablas de referencia
+// GET /api/referencias — datos de tablas de referencia
 app.get("/api/referencias", async (req, res) => {
   try {
     const [barrios, universidades, tiposAlojamiento, caracteristicas, tiposProveedor, tiposVehiculo] = await Promise.all([
@@ -278,7 +319,7 @@ app.get("/api/referencias", async (req, res) => {
   }
 });
 
-// GET /api/tipos-vehiculo ÔÇö tipos de veh├¡culo para select
+// GET /api/tipos-vehiculo — tipos de vehículo para select
 app.get("/api/tipos-vehiculo", async (req, res) => {
   try {
     const { data, error } = await supabase.from("tipos_vehiculo").select("id, nombre").order("id");
@@ -286,11 +327,11 @@ app.get("/api/tipos-vehiculo", async (req, res) => {
     res.json(data);
   } catch (err) {
     console.error("Error GET /api/tipos-vehiculo:", err.message);
-    res.status(500).json({ error: "Error al obtener tipos de veh├¡culo" });
+    res.status(500).json({ error: "Error al obtener tipos de vehículo" });
   }
 });
 
-// POST /api/contacto ÔÇö guardar solicitud de mudanza
+// POST /api/contacto — guardar solicitud de mudanza
 app.post("/api/contacto", async (req, res) => {
   const { nombre, telefono, email, origen, destino, tamano, fecha, observaciones, flete_id } = req.body;
 
@@ -325,10 +366,10 @@ app.post("/api/contacto", async (req, res) => {
 });
 
 // ============================================================
-// Proveedores ÔÇö login y CRUD
+// Proveedores — login y CRUD
 // ============================================================
 
-// POST /api/proveedores/login ÔÇö buscar o crear proveedor por email
+// POST /api/proveedores/login — buscar o crear proveedor por email
 app.post("/api/proveedores/login", async (req, res) => {
   const { nombre, tipo, email, telefono } = req.body;
 
@@ -387,11 +428,11 @@ app.post("/api/proveedores/login", async (req, res) => {
     res.status(201).json({ ...nuevo, tipo });
   } catch (err) {
     console.error("Error POST /api/proveedores/login:", err.message);
-    res.status(500).json({ error: "Error al iniciar sesi├│n" });
+    res.status(500).json({ error: "Error al iniciar sesión" });
   }
 });
 
-// GET /api/proveedores/:id/alojamientos ÔÇö alojamientos de un proveedor
+// GET /api/proveedores/:id/alojamientos — alojamientos de un proveedor
 app.get("/api/proveedores/:id/alojamientos", async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -401,7 +442,8 @@ app.get("/api/proveedores/:id/alojamientos", async (req, res) => {
         barrios (nombre),
         tipos_alojamiento (nombre),
         alojamiento_caracteristicas (caracteristicas (nombre)),
-        alojamiento_universidades (universidades (nombre, latitud, longitud))
+        alojamiento_universidades (universidades (nombre, latitud, longitud)),
+        imagenes_alojamiento (id, url, orden)
       `)
       .eq("proveedor_id", req.params.id)
       .order("id");
@@ -417,6 +459,9 @@ app.get("/api/proveedores/:id/alojamientos", async (req, res) => {
         dist = haversine(row.latitud, row.longitud, uniRel.universidades.latitud, uniRel.universidades.longitud);
         dist = Math.round(dist * 10) / 10;
       }
+      const imagenesOrdenadas = (row.imagenes_alojamiento || [])
+        .slice()
+        .sort((a, b) => a.orden - b.orden);
       return {
         id: row.id,
         nombre: row.titulo,
@@ -432,6 +477,12 @@ app.get("/api/proveedores/:id/alojamientos", async (req, res) => {
         cochera: ac.includes("Cochera"),
         servicios: ac,
         img: IMGS[row.id] || "linear-gradient(135deg,#8b5cf6,#4c1d95)",
+        imgs: imagenesOrdenadas.map(img => img.url),
+        imgIds: imagenesOrdenadas.map(img => img.id),
+        lat: row.latitud || null,
+        lng: row.longitud || null,
+        calle: row.calle || "",
+        referencia: row.referencia || "",
         desc: row.descripcion || ""
       };
     });
@@ -443,9 +494,9 @@ app.get("/api/proveedores/:id/alojamientos", async (req, res) => {
   }
 });
 
-// POST /api/alojamientos ÔÇö crear alojamiento
+// POST /api/alojamientos — crear alojamiento
 app.post("/api/alojamientos", async (req, res) => {
-  const { proveedor_id, titulo, tipo, precio_mensual, barrio, habitaciones, banos, descripcion, latitud, longitud, wifi, amoblado, cochera, balcon, calefaccion, aire, parrilla, universidad } = req.body;
+  const { proveedor_id, titulo, tipo, precio_mensual, barrio, habitaciones, banos, descripcion, calle, referencia, latitud, longitud, wifi, amoblado, cochera, balcon, calefaccion, aire, parrilla, universidad, caracteristicas } = req.body;
 
   if (!proveedor_id || !titulo || !precio_mensual) {
     return res.status(400).json({ error: "Faltan campos obligatorios: proveedor_id, titulo, precio_mensual" });
@@ -481,6 +532,8 @@ app.post("/api/alojamientos", async (req, res) => {
         habitaciones: habitaciones || 1,
         banos: banos || 1,
         descripcion: descripcion || "",
+        calle: calle || null,
+        referencia: referencia || null,
         latitud: lat,
         longitud: lng,
         estado: "disponible",
@@ -499,27 +552,26 @@ app.post("/api/alojamientos", async (req, res) => {
       }
     }
 
-    // Asociar caracter├¡sticas (crear si no existen)
-    const caracteristicasNuevas = [];
-    if (wifi) caracteristicasNuevas.push("WiFi");
-    if (amoblado) caracteristicasNuevas.push("Amoblado");
-    if (cochera) caracteristicasNuevas.push("Cochera");
-    if (balcon) caracteristicasNuevas.push("Balc├│n");
-    if (calefaccion) caracteristicasNuevas.push("Calefacci├│n");
-    if (aire) caracteristicasNuevas.push("Aire acondicionado");
-    if (parrilla) caracteristicasNuevas.push("Parrilla");
+    // Asociar características.
+    // Si viene el array "caracteristicas" (nombres), es la fuente de verdad.
+    // Si no, se arma la lista a partir de los flags individuales (compatibilidad).
+    let nombresCaracteristicas;
+    if (Array.isArray(caracteristicas)) {
+      nombresCaracteristicas = caracteristicas;
+    } else {
+      nombresCaracteristicas = [];
+      if (wifi) nombresCaracteristicas.push("WiFi");
+      if (amoblado) nombresCaracteristicas.push("Amoblado");
+      if (cochera) nombresCaracteristicas.push("Cochera");
+      if (balcon) nombresCaracteristicas.push("Balcón");
+      if (calefaccion) nombresCaracteristicas.push("Calefacción");
+      if (aire) nombresCaracteristicas.push("Aire acondicionado");
+      if (parrilla) nombresCaracteristicas.push("Parrilla");
+    }
 
-    for (const nombre of caracteristicasNuevas) {
-      // Buscar si ya existe
-      let { data: c } = await supabase.from("caracteristicas").select("id").eq("nombre", nombre).single();
-      // Si no existe, crearla
-      if (!c) {
-        const { data: nueva } = await supabase.from("caracteristicas").insert({ nombre }).select("id").single();
-        c = nueva;
-      }
-      if (c) {
-        await supabase.from("alojamiento_caracteristicas").insert({ alojamiento_id: aloj.id, caracteristica_id: c.id });
-      }
+    const resueltas = await resolverCaracteristicas(nombresCaracteristicas);
+    for (const c of resueltas) {
+      await supabase.from("alojamiento_caracteristicas").insert({ alojamiento_id: aloj.id, caracteristica_id: c.id });
     }
 
     res.status(201).json({ ok: true, id: aloj.id });
@@ -529,9 +581,9 @@ app.post("/api/alojamientos", async (req, res) => {
   }
 });
 
-// PUT /api/alojamientos/:id ÔÇö editar alojamiento
+// PUT /api/alojamientos/:id — editar alojamiento
 app.put("/api/alojamientos/:id", async (req, res) => {
-  const { titulo, tipo, precio_mensual, barrio, habitaciones, banos, descripcion, wifi, amoblado, cochera, universidad } = req.body;
+  const { titulo, tipo, precio_mensual, barrio, habitaciones, banos, descripcion, calle, referencia, latitud, longitud, wifi, amoblado, cochera, universidad, caracteristicas } = req.body;
   const id = req.params.id;
 
   try {
@@ -549,18 +601,30 @@ app.put("/api/alojamientos/:id", async (req, res) => {
       tipoId = t?.id || null;
     }
 
-    // Actualizar alojamiento
+    // Actualizar alojamiento.
+    // Ubicación: solo se actualiza el campo si viene en el body,
+    // para no pisar coordenadas existentes con valores vacíos.
+    const update = {
+      titulo,
+      precio_mensual,
+      barrio_id: barrioId,
+      tipo_alojamiento_id: tipoId,
+      habitaciones: habitaciones || 1,
+      banos: banos || 1,
+      descripcion: descripcion || ""
+    };
+    if (calle !== undefined) update.calle = calle || null;
+    if (referencia !== undefined) update.referencia = referencia || null;
+    const latNum = parseFloat(latitud);
+    const lngNum = parseFloat(longitud);
+    if (!isNaN(latNum) && !isNaN(lngNum)) {
+      update.latitud = latNum;
+      update.longitud = lngNum;
+    }
+
     const { error } = await supabase
       .from("alojamientos")
-      .update({
-        titulo,
-        precio_mensual,
-        barrio_id: barrioId,
-        tipo_alojamiento_id: tipoId,
-        habitaciones: habitaciones || 1,
-        banos: banos || 1,
-        descripcion: descripcion || ""
-      })
+      .update(update)
       .eq("id", id);
 
     if (error) throw error;
@@ -574,17 +638,56 @@ app.put("/api/alojamientos/:id", async (req, res) => {
       }
     }
 
-    // Sincronizar caracter├¡sticas
-    await supabase.from("alojamiento_caracteristicas").delete().eq("alojamiento_id", id);
-    const caracteristicas = [];
-    if (wifi) caracteristicas.push("WiFi");
-    if (amoblado) caracteristicas.push("Amoblado");
-    if (cochera) caracteristicas.push("Cochera");
+    // Sincronizar características.
+    // Si viene el array "caracteristicas" (nombres), sincroniza la relación
+    // completa: agrega las nuevas, quita las desmarcadas, nunca borra registros
+    // de la tabla caracteristicas. Si no viene el array, se mantiene el
+    // comportamiento anterior con los 3 flags individuales.
+    if (Array.isArray(caracteristicas)) {
+      const resueltas = await resolverCaracteristicas(caracteristicas);
+      const deseadas = new Set(resueltas.map(c => c.id));
 
-    for (const nombre of caracteristicas) {
-      const { data: c } = await supabase.from("caracteristicas").select("id").eq("nombre", nombre).single();
-      if (c) {
-        await supabase.from("alojamiento_caracteristicas").insert({ alojamiento_id: id, caracteristica_id: c.id });
+      // La tabla tiene PK compuesta (alojamiento_id, caracteristica_id),
+      // no tiene columna id: se sincroniza por el par de claves.
+      const { data: actuales } = await supabase
+        .from("alojamiento_caracteristicas")
+        .select("caracteristica_id")
+        .eq("alojamiento_id", id);
+      const actualesIds = new Set((actuales || []).map(r => r.caracteristica_id));
+
+      // Quitar relaciones desmarcadas
+      for (const cid of actualesIds) {
+        if (!deseadas.has(cid)) {
+          const { error: errDel } = await supabase
+            .from("alojamiento_caracteristicas")
+            .delete()
+            .eq("alojamiento_id", Number(id))
+            .eq("caracteristica_id", cid);
+          if (errDel) console.error("Error quitando característica:", errDel.message);
+        }
+      }
+
+      // Agregar relaciones nuevas
+      for (const cid of deseadas) {
+        if (!actualesIds.has(cid)) {
+          const { error: errIns } = await supabase
+            .from("alojamiento_caracteristicas")
+            .insert({ alojamiento_id: Number(id), caracteristica_id: cid });
+          if (errIns) console.error("Error agregando característica:", errIns.message);
+        }
+      }
+    } else {
+      await supabase.from("alojamiento_caracteristicas").delete().eq("alojamiento_id", id);
+      const flags = [];
+      if (wifi) flags.push("WiFi");
+      if (amoblado) flags.push("Amoblado");
+      if (cochera) flags.push("Cochera");
+
+      for (const nombre of flags) {
+        const { data: c } = await supabase.from("caracteristicas").select("id").eq("nombre", nombre).single();
+        if (c) {
+          await supabase.from("alojamiento_caracteristicas").insert({ alojamiento_id: id, caracteristica_id: c.id });
+        }
       }
     }
 
@@ -595,14 +698,14 @@ app.put("/api/alojamientos/:id", async (req, res) => {
   }
 });
 
-// DELETE /api/alojamientos/:id ÔÇö eliminar alojamiento
+// DELETE /api/alojamientos/:id — eliminar alojamiento
 app.delete("/api/alojamientos/:id", async (req, res) => {
   const id = req.params.id;
   try {
     await supabase.from("alojamiento_caracteristicas").delete().eq("alojamiento_id", id);
     await supabase.from("alojamiento_universidades").delete().eq("alojamiento_id", id);
 
-    // Eliminar im├ígenes de Storage antes de borrar registros
+    // Eliminar imágenes de Storage antes de borrar registros
     const { data: imgs } = await supabase.from("imagenes_alojamiento").select("url").eq("alojamiento_id", id);
     if (imgs && imgs.length) {
       const paths = imgs.map(i => i.url.split("/").slice(-2).join("/"));
@@ -620,13 +723,15 @@ app.delete("/api/alojamientos/:id", async (req, res) => {
 });
 
 // ============================================================
-// Im├ígenes ÔÇö Upload a Supabase Storage + referencia en DB
+// Imágenes — Upload a Supabase Storage + referencia en DB
 // ============================================================
 
-// POST /api/alojamientos/:id/imagenes ÔÇö subir im├ígenes
+// POST /api/alojamientos/:id/imagenes — subir imágenes
 app.post("/api/alojamientos/:id/imagenes", upload.array("fotos", 10), async (req, res) => {
   const alojamientoId = req.params.id;
   const files = req.files;
+
+  console.log("UPLOAD DEBUG: alojamientoId=", alojamientoId, "files=", files ? files.length : 0);
 
   if (!files || !files.length) {
     return res.status(400).json({ error: "No se enviaron archivos" });
@@ -637,7 +742,7 @@ app.post("/api/alojamientos/:id/imagenes", upload.array("fotos", 10), async (req
     const { data: aloj } = await supabase.from("alojamientos").select("id").eq("id", alojamientoId).single();
     if (!aloj) return res.status(404).json({ error: "Alojamiento no encontrado" });
 
-    // Obtener el orden m├íximo actual
+    // Obtener el orden máximo actual
     const { data: existing } = await supabase
       .from("imagenes_alojamiento")
       .select("orden")
@@ -652,6 +757,8 @@ app.post("/api/alojamientos/:id/imagenes", upload.array("fotos", 10), async (req
       const ext = file.originalname.split(".").pop() || "jpg";
       const filePath = `aloj-${alojamientoId}/${Date.now()}_${nextOrden}.${ext}`;
 
+      console.log("UPLOAD DEBUG: subiendo", file.originalname, file.mimetype, file.size + " bytes", "->", filePath);
+
       // Subir a Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from("alojamiento-imagenes")
@@ -662,7 +769,7 @@ app.post("/api/alojamientos/:id/imagenes", upload.array("fotos", 10), async (req
         continue;
       }
 
-      // Obtener URL p├║blica
+      // Obtener URL pública
       const { data: urlData } = supabase.storage
         .from("alojamiento-imagenes")
         .getPublicUrl(filePath);
@@ -692,11 +799,11 @@ app.post("/api/alojamientos/:id/imagenes", upload.array("fotos", 10), async (req
     res.status(201).json({ ok: true, imagenes: uploaded });
   } catch (err) {
     console.error("Error POST /api/alojamientos/:id/imagenes:", err.message);
-    res.status(500).json({ error: "Error al subir im├ígenes" });
+    res.status(500).json({ error: "Error al subir imágenes" });
   }
 });
 
-// DELETE /api/imagenes/:imagenId ÔÇö eliminar una imagen
+// DELETE /api/imagenes/:imagenId — eliminar una imagen
 app.delete("/api/imagenes/:imagenId", async (req, res) => {
   const imagenId = req.params.imagenId;
 
@@ -710,7 +817,7 @@ app.delete("/api/imagenes/:imagenId", async (req, res) => {
 
     if (!img) return res.status(404).json({ error: "Imagen no encontrada" });
 
-    // Extraer path relativo del Storage desde la URL p├║blica
+    // Extraer path relativo del Storage desde la URL pública
     const urlParts = img.url.split("/alojamiento-imagenes/");
     const storagePath = urlParts[1] || img.url.split("/").slice(-2).join("/");
 
@@ -729,10 +836,10 @@ app.delete("/api/imagenes/:imagenId", async (req, res) => {
 });
 
 // ============================================================
-// Fletes (transporte) ÔÇö CRUD
+// Fletes (transporte) — CRUD
 // ============================================================
 
-// GET /api/proveedores/:id/fletes ÔÇö servicios de transporte de un proveedor
+// GET /api/proveedores/:id/fletes — servicios de transporte de un proveedor
 app.get("/api/proveedores/:id/fletes", async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -754,7 +861,7 @@ app.get("/api/proveedores/:id/fletes", async (req, res) => {
   }
 });
 
-// POST /api/fletes ÔÇö crear servicio de transporte
+// POST /api/fletes — crear servicio de transporte
 app.post("/api/fletes", async (req, res) => {
   const { proveedor_id, nombre_comercial, tipo_vehiculo, cobertura, telefono, email, whatsapp } = req.body;
 
@@ -773,7 +880,7 @@ app.post("/api/fletes", async (req, res) => {
     if (tipo_vehiculo) {
       const { data: tv } = await supabase.from("tipos_vehiculo").select("id").eq("nombre", tipo_vehiculo).single();
       if (tv) {
-        // Verificar si ya tiene veh├¡culo
+        // Verificar si ya tiene vehículo
         const { data: existing } = await supabase
           .from("proveedor_vehiculos")
           .select("id")
@@ -800,7 +907,7 @@ app.post("/api/fletes", async (req, res) => {
   }
 });
 
-// PUT /api/fletes/:id ÔÇö editar servicio de transporte
+// PUT /api/fletes/:id — editar servicio de transporte
 app.put("/api/fletes/:id", async (req, res) => {
   const { nombre_comercial, tipo_vehiculo, cobertura, telefono, email, whatsapp } = req.body;
   const id = req.params.id;
@@ -814,7 +921,7 @@ app.put("/api/fletes/:id", async (req, res) => {
 
     if (error) throw error;
 
-    // Actualizar tipo de veh├¡culo
+    // Actualizar tipo de vehículo
     if (tipo_vehiculo) {
       const { data: tv } = await supabase.from("tipos_vehiculo").select("id").eq("nombre", tipo_vehiculo).single();
       if (tv) {
@@ -844,7 +951,7 @@ app.put("/api/fletes/:id", async (req, res) => {
   }
 });
 
-// DELETE /api/fletes/:id ÔÇö eliminar servicio de transporte
+// DELETE /api/fletes/:id — eliminar servicio de transporte
 app.delete("/api/fletes/:id", async (req, res) => {
   const id = req.params.id;
   try {
@@ -858,10 +965,10 @@ app.delete("/api/fletes/:id", async (req, res) => {
 });
 
 // ============================================================
-// Vistas y estad├¡sticas
+// Vistas y estadísticas
 // ============================================================
 
-// POST /api/vistas ÔÇö registrar una vista
+// POST /api/vistas — registrar una vista
 app.post("/api/vistas", async (req, res) => {
   const { proveedor_id, alojamiento_id, flete_id } = req.body;
   if (!proveedor_id) {
@@ -879,7 +986,7 @@ app.post("/api/vistas", async (req, res) => {
   }
 });
 
-// GET /api/proveedores/:id/stats ÔÇö estad├¡sticas reales del proveedor
+// GET /api/proveedores/:id/stats — estadísticas reales del proveedor
 app.get("/api/proveedores/:id/stats", async (req, res) => {
   const id = req.params.id;
   try {
@@ -889,7 +996,7 @@ app.get("/api/proveedores/:id/stats", async (req, res) => {
       .select("id", { count: "exact", head: true })
       .eq("proveedor_id", id);
 
-    // Vistas: contar registros_vistas donde el proveedor Due├▒o
+    // Vistas: contar registros_vistas donde el proveedor Dueño
     const { count: vistasPropias } = await supabase
       .from("registros_vistas")
       .select("id", { count: "exact", head: true })
@@ -917,7 +1024,7 @@ app.get("/api/proveedores/:id/stats", async (req, res) => {
     });
   } catch (err) {
     console.error("Error GET /api/proveedores/:id/stats:", err.message);
-    res.status(500).json({ error: "Error al obtener estad├¡sticas" });
+    res.status(500).json({ error: "Error al obtener estadísticas" });
   }
 });
 
