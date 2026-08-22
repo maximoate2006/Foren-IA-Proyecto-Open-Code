@@ -194,7 +194,7 @@ function transformFlete(row) {
 // Autenticación y autorización
 // ============================================================
 
-const MIGRACION_PENDIENTE = "Falta ejecutar la migración 004_usuarios_auth.sql en el SQL Editor de Supabase.";
+const MIGRACION_PENDIENTE = "Falta ejecutar las migraciones en el SQL Editor de Supabase.";
 
 // Extrae y valida el JWT del header Authorization. Devuelve el user de auth o null.
 async function usuarioDesdeToken(req) {
