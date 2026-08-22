@@ -1015,7 +1015,7 @@ $("#btnLogout").addEventListener("click", async () => {
   $("#favCountTop").textContent = favorites.length;
   $("#userMenu").classList.remove("open");
   updateAuthUI();
-  showProviderLogin();
+  renderProviderGate();
   renderFeatured();
   if ($("#favoritos").classList.contains("active")) renderFavorites();
   goTo("home");
@@ -1710,11 +1710,6 @@ async function loadProviderDataFromAPI() {
   }
 }
 
-function showProviderLogin() {
-  $("#providerLogin").style.display = "";
-  $("#providerPanel").style.display = "none";
-}
-
 function showProviderPanel() {
   if (!providerData) return;
   $("#providerLogin").style.display = "none";
@@ -2252,20 +2247,8 @@ async function deleteProviderTransport(idx) {
 
 // El login viejo por email fue reemplazado por el flujo de sesión real:
 // renderProviderGate() + handleVincular() gestionan esta sección.
-
-$("#provLogout").addEventListener("click", async () => {
-  clearSession();
-  providerLoggedIn = false;
-  providerData = null;
-  providerListings = [];
-  providerTransportList = [];
-  localStorage.removeItem("forania_provider");
-  favorites = JSON.parse(localStorage.getItem("forania_favs") || "[]");
-  $("#favCountTop").textContent = favorites.length;
-  updateAuthUI();
-  renderProviderGate();
-  toast("Sesión cerrada");
-});
+// El botón "Cerrar sesión" del panel se quitó: el menú del usuario
+// en el header (#btnLogout) cubre desktop y móvil.
 
 $("#addNewProp").addEventListener("click", addProviderListing);
 $("#addNewTransport").addEventListener("click", addProviderTransport);
