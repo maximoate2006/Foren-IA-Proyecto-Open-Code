@@ -1268,6 +1268,35 @@ app.get("/api/proveedores/:id/fletes", async (req, res) => {
   }
 });
 
+// GET /api/proveedores/:id/solicitudes — solicitudes de presupuesto para un transportista.
+// Devuelve las dirigidas a sus fletes y las generales (proveedor_id null), más recientes primero.
+app.get("/api/proveedores/:id/solicitudes", requireAuth, async (req, res) => {
+  try {
+    const prov = await proveedorDelUsuario(req.authUser.id);
+    if (!prov || prov.id !== Number(req.params.id)) {
+      return res.status(403).json({ error: "No tenés permiso para ver estas solicitudes" });
+    }
+  } catch (err) {
+    console.error("Error verificando proveedor:", err.message);
+    return res.status(500).json({ error: "Error al verificar el proveedor" });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("solicitudes_mudanza")
+      .select("id, nombre_contacto, telefono, email, origen, destino, tamano, fecha_mudanza, observaciones, proveedor_id, estado, creado_en")
+      .or(`proveedor_id.eq.${Number(req.params.id)},proveedor_id.is.null`)
+      .order("creado_en", { ascending: false })
+      .limit(50);
+
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    console.error("Error GET /api/proveedores/:id/solicitudes:", err.message);
+    res.status(500).json({ error: "Error al obtener solicitudes" });
+  }
+});
+
 // POST /api/fletes — crear servicio de transporte (solo el dueño)
 app.post("/api/fletes", requireAuth, async (req, res) => {
   const { proveedor_id, nombre_comercial, tipo_vehiculo, cobertura, telefono, email, whatsapp } = req.body;

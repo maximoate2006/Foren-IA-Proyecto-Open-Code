@@ -46,8 +46,6 @@ async function loadReferences() {
     populateSelect("#fUni", REFS.universidades || [], "Todas");
     populateSelect("#fType", REFS.tipos_alojamiento || [], "Todos", true);
     populateSelect("#fBarrio", REFS.barrios || [], "Todos");
-    populateSelect("#pubTipo", REFS.tipos_alojamiento || [], "Seleccionar...", true);
-    populateSelect("#pubBarrio", REFS.barrios || [], "Seleccionar...");
   } catch (err) {
     console.error("Error cargando referencias:", err);
   }
@@ -177,7 +175,7 @@ function goTo(page) {
   if (page === "alquileres") renderCatalog(filteredProps);
 if (page === "favoritos") { if (estaLogueado()) recargarFavoritosServidor().then(renderFavorites); renderFavorites(); }
 if (page === "perfil") { $("#profFavs").textContent = favorites.length; $("#profComp").textContent = compare.length; updateAuthUI(); }
-  if (page === "publicar") setTimeout(() => initPublishMap(), 150);
+  if (page === "publicar") renderPublicarForm();
 }
 
 $$("[data-nav]").forEach(el => el.addEventListener("click", (e) => {
@@ -1046,19 +1044,19 @@ function openQuoteModal() {
       <p class="muted" style="margin-bottom:16px">Completá los datos y los transportistas te contactarán.</p>
       <form class="form" id="quoteForm">
         <div class="form-row">
-          <label>Nombre<input type="text" placeholder="Tu nombre" required></label>
-          <label>Teléfono / WhatsApp<input type="tel" placeholder="+54 9 3804 ..." required></label>
+          <label>Nombre<input type="text" id="qNombre" placeholder="Tu nombre" required></label>
+          <label>Teléfono / WhatsApp<input type="tel" id="qTelefono" placeholder="+54 9 3804 ..." required></label>
         </div>
         <div class="form-row">
-          <label>Dirección de origen<input type="text" placeholder="Ej: Centro, La Rioja" required></label>
-          <label>Dirección de destino<input type="text" placeholder="Ej: Zona UNLaR" required></label>
+          <label>Dirección de origen<input type="text" id="qOrigen" placeholder="Ej: Centro, La Rioja" required></label>
+          <label>Dirección de destino<input type="text" id="qDestino" placeholder="Ej: Zona UNLaR" required></label>
         </div>
         <div class="form-row">
-          <label>Tamaño de la mudanza<select required><option value="">Seleccionar...</option><option value="pequeña">Pequena (1 ambiente)</option><option value="mediana">Mediana (2-3 ambientes)</option><option value="grande">Grande (4+ ambientes)</option></select></label>
-          <label>Fecha estimada<input type="date" required></label>
+          <label>Tamaño de la mudanza<select id="qTamano" required><option value="">Seleccionar...</option><option value="pequeña">Pequena (1 ambiente)</option><option value="mediana">Mediana (2-3 ambientes)</option><option value="grande">Grande (4+ ambientes)</option></select></label>
+          <label>Fecha estimada<input type="date" id="qFecha" required></label>
         </div>
-        <label>Observaciones<textarea rows="3" placeholder="Ej: Horario preferido, accesos especiales..."></textarea></label>
-        <button type="submit" class="btn btn-primary btn-lg">Enviar solicitud</button>
+        <label>Observaciones<textarea id="qObs" rows="3" placeholder="Ej: Horario preferido, accesos especiales..."></textarea></label>
+        <button type="submit" class="btn btn-primary btn-lg" id="qSubmitBtn">Enviar solicitud</button>
       </form>
     </div>`;
 
@@ -1073,10 +1071,37 @@ function openQuoteModal() {
   modal.querySelector("#quoteModalClose").addEventListener("click", closeModal);
   overlay.addEventListener("click", closeModal);
 
-  modal.querySelector("#quoteForm").addEventListener("submit", (e) => {
+  modal.querySelector("#quoteForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    closeModal();
-    toast("Solicitud de presupuesto enviada correctamente");
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Enviando...";
+    try {
+      const res = await apiFetch(`${API_URL}/contacto`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: $("#qNombre").value.trim(),
+          telefono: $("#qTelefono").value.trim(),
+          origen: $("#qOrigen").value.trim(),
+          destino: $("#qDestino").value.trim(),
+          tamano: $("#qTamano").value,
+          fecha: $("#qFecha").value,
+          observaciones: $("#qObs").value.trim()
+        })
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Error del servidor");
+      }
+      closeModal();
+      toast("Solicitud enviada. Un transportista se va a contactar contigo.");
+    } catch (err) {
+      toast(`No se pudo enviar la solicitud: ${err.message}`);
+      console.error(err);
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Enviar solicitud";
+    }
   });
 }
 
@@ -1121,13 +1146,6 @@ $("#closeQuickResults").addEventListener("click", () => {
 const UNLaR_COORDS = [-29.429795464675685, -66.86895000115601];
 const UTN_COORDS = [-29.409302686325614, -66.83154047687555];
 
-let publishMiniMap = null;
-let publishMarker = null;
-let publishLat = null;
-let publishLng = null;
-let publishImages = [];
-let publishFileObjects = [];
-
 function calcDistInfo(lat, lng) {
   function hav(lat1, lng1, lat2, lng2) {
     const R = 6371;
@@ -1137,92 +1155,6 @@ function calcDistInfo(lat, lng) {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
   return { dUnilar: hav(lat, lng, UNLaR_COORDS[0], UNLaR_COORDS[1]), dUtn: hav(lat, lng, UTN_COORDS[0], UTN_COORDS[1]) };
-}
-
-function initPublishMap() {
-  if (publishMiniMap) return;
-  const container = document.getElementById("publishMapPreview");
-  if (!container) return;
-  container.style.display = "block";
-  publishMiniMap = L.map(container, { zoomControl: true }).setView([-29.445, -66.855], 13);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    maxZoom: 19
-  }).addTo(publishMiniMap);
-  publishMiniMap.on("click", (e) => {
-    placePublishMarker(e.latlng.lat, e.latlng.lng);
-  });
-  setTimeout(() => publishMiniMap.invalidateSize(), 100);
-}
-
-function placePublishMarker(lat, lng) {
-  publishLat = lat;
-  publishLng = lng;
-  if (publishMarker) {
-    publishMarker.setLatLng([lat, lng]);
-  } else {
-    publishMarker = L.marker([lat, lng], { draggable: true }).addTo(publishMiniMap);
-    publishMarker.on("dragend", (e) => {
-      publishLat = e.target.getLatLng().lat;
-      publishLng = e.target.getLatLng().lng;
-      updatePublishDistInfo();
-    });
-  }
-  publishMiniMap.setView([lat, lng], 15);
-  updatePublishDistInfo();
-}
-
-function updatePublishDistInfo() {
-  const infoEl = document.getElementById("publishDistInfo");
-  if (!publishLat || !publishLng || !infoEl) return;
-  const { dUnilar, dUtn } = calcDistInfo(publishLat, publishLng);
-  infoEl.style.display = "";
-  infoEl.innerHTML = `<strong>${dUnilar.toFixed(1)} km</strong> de UNLaR &mdash; <strong>${dUtn.toFixed(1)} km</strong> de UTN`;
-}
-
-function renderPublishPreviews() {
-  const container = document.getElementById("publishPreview");
-  if (!container) return;
-  container.innerHTML = "";
-  publishImages.forEach((src, i) => {
-    const item = document.createElement("div");
-    item.className = "publish-preview-item";
-    item.innerHTML = `<img src="${src}" alt="Foto ${i + 1}"><button type="button" class="remove-btn" data-rm="${i}">&times;</button>`;
-    container.appendChild(item);
-  });
-  container.querySelectorAll(".remove-btn").forEach(b => {
-    b.addEventListener("click", () => {
-      const idx = +b.dataset.rm;
-      publishImages.splice(idx, 1);
-      publishFileObjects.splice(idx, 1);
-      renderPublishPreviews();
-    });
-  });
-}
-
-function handlePublishFiles(files) {
-  const maxFiles = 10;
-  const maxSize = 5 * 1024 * 1024;
-  Array.from(files).forEach(file => {
-    if (publishImages.length >= maxFiles) { toast("Máximo 10 fotos"); return; }
-    if (!file.type.startsWith("image/")) { toast("Solo se aceptan imágenes"); return; }
-    if (file.size > maxSize) { toast(`${file.name} supera 5MB`); return; }
-    publishFileObjects.push(file);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      publishImages.push(e.target.result);
-      renderPublishPreviews();
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-const publishFileInput = document.getElementById("publishFiles");
-if (publishFileInput) {
-  publishFileInput.addEventListener("change", (e) => {
-    handlePublishFiles(e.target.files);
-    e.target.value = "";
-  });
 }
 
 /* ---------- Mapa de edición (modal proveedor) ----------
@@ -1377,194 +1309,117 @@ async function buscarEnNominatim(calle, barrio) {
   return { found: null, hadNetworkError };
 }
 
-async function geocodeAddress() {
-  const btn = document.getElementById("geocodeBtn");
-  const calle = document.getElementById("pubCalle").value.trim();
-  const barrio = document.getElementById("pubBarrio").value.trim();
-  const statusEl = document.getElementById("geocodeStatus");
+/* ---------- Sección Publicar ----------
+   Reutiliza el generador del panel de proveedores (providerFormHTML)
+   para que esta sección use el mismo formulario completo:
+   características desde la base, universidad, fotos y mapa. */
+async function renderPublicarForm() {
+  const host = $("#publicarFormHost");
+  if (!host) return;
 
-  if (!statusEl) return;
-
-  if (!calle) {
-    statusEl.style.display = "";
-    statusEl.className = "geocode-status error";
-    statusEl.textContent = "Ingresá una calle y número para buscar.";
+  if (!estaLogueado()) {
+    host.innerHTML = `
+      <div class="card" style="text-align:center;padding:40px">
+        <h3>Publicá tu propiedad en ForanIA</h3>
+        <p class="muted" style="margin:10px auto 16px;max-width:420px">Necesitás una sesión iniciada para publicar. Creá tu cuenta en un minuto.</p>
+        <button class="btn btn-primary btn-lg" id="pubLoginBtn">Iniciar sesi&oacute;n / Crear cuenta</button>
+      </div>`;
+    $("#pubLoginBtn").addEventListener("click", () => openCuenta("login"));
     return;
   }
 
-  const btnText = btn ? btn.textContent : "";
-  if (btn) { btn.disabled = true; btn.textContent = "Buscando ubicación..."; }
-  statusEl.style.display = "";
-  statusEl.className = "geocode-status loading";
-  statusEl.textContent = "Buscando ubicación...";
+  if (!providerData) await initProviderSection();
 
-  try {
-    const { found, hadNetworkError } = await buscarEnNominatim(calle, barrio);
-
-    if (found) {
-      initPublishMap();
-      placePublishMarker(parseFloat(found.lat), parseFloat(found.lon));
-      statusEl.className = "geocode-status success";
-      statusEl.textContent = `Ubicación encontrada: ${found.display_name.split(",").slice(0, 3).join(", ")}. Podés arrastrar el marcador para corregir la posición.`;
-    } else if (hadNetworkError) {
-      statusEl.className = "geocode-status error";
-      statusEl.textContent = "Error de conexión con el servicio de mapas. Verificá tu conexión e intentá de nuevo, o colocá el marcador manualmente en el mapa.";
-    } else {
-      statusEl.className = "geocode-status error";
-      statusEl.textContent = "No encontramos esa dirección. Podés seleccionar la ubicación manualmente en el mapa.";
-    }
-  } catch (err) {
-    console.error("Geocoding error:", err);
-    statusEl.className = "geocode-status error";
-    statusEl.textContent = "Ocurrió un error al buscar la ubicación. Podés colocar el marcador manualmente en el mapa.";
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = btnText; }
-  }
-}
-
-const geocodeBtn = document.getElementById("geocodeBtn");
-if (geocodeBtn) {
-  geocodeBtn.addEventListener("click", geocodeAddress);
-}
-
-$("#publishForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  if (validarRequeridos(e.target)) return;
-
-  if (!publishLat || !publishLng) {
-    alertarZona(
-      document.getElementById("publishMapPreview"),
-      "Falta la ubicación: buscá la dirección o hacé click en el mapa para colocar el marcador"
-    );
-    return;
-  }
-  if (!publishImages.length) {
-    alertarZona(
-      document.getElementById("publishFiles"),
-      "Falta subir al menos 1 foto de la propiedad"
-    );
+  if (!providerData) {
+    host.innerHTML = `
+      <div class="card" style="text-align:center;padding:40px">
+        <h3>Activá tu perfil para publicar</h3>
+        <p class="muted" style="margin:10px auto 16px;max-width:440px">Vinculá tu cuenta con un perfil de propietario o inmobiliaria desde la sección Proveedores.</p>
+        <button class="btn btn-primary btn-lg" id="pubGoProv">Ir a Proveedores</button>
+      </div>`;
+    $("#pubGoProv").addEventListener("click", () => goTo("proveedores"));
     return;
   }
 
-  const titulo = document.getElementById("pubTitulo").value.trim();
-  const precio = +document.getElementById("pubPrecio").value;
-  const tipo = document.getElementById("pubTipo").value;
-  const barrio = document.getElementById("pubBarrio").value.trim();
-  const calle = document.getElementById("pubCalle").value.trim();
-  const referencia = document.getElementById("pubReferencia").value.trim();
-  const habs = +document.getElementById("pubHabs").value;
-  const banos = +document.getElementById("pubBanos").value;
-  const desc = document.getElementById("pubDesc").value.trim();
-  const wifi = document.getElementById("pubWifi").checked;
-  const amoblado = document.getElementById("pubAmoblado").checked;
-  const cochera = document.getElementById("pubCochera").checked;
-  const balcon = document.getElementById("pubBalcon").checked;
-  const calefaccion = document.getElementById("pubCalefaccion").checked;
-  const aire = document.getElementById("pubAire").checked;
-  const parrilla = document.getElementById("pubParrilla").checked;
+  if (providerData.tipo === "transportista") {
+    host.innerHTML = `
+      <div class="card" style="text-align:center;padding:40px">
+        <h3>Tu perfil es de transportista</h3>
+        <p class="muted" style="margin:10px auto 16px;max-width:480px">Las propiedades se publican con un perfil de propietario o inmobiliaria. Tus servicios de mudanza se gestionan desde el panel de proveedores.</p>
+        <button class="btn btn-primary btn-lg" id="pubGoProv">Ir a mi panel</button>
+      </div>`;
+    $("#pubGoProv").addEventListener("click", () => goTo("proveedores"));
+    return;
+  }
 
-  const { dUnilar, dUtn } = calcDistInfo(publishLat, publishLng);
-  const closestUni = dUnilar <= dUtn ? "UNLaR" : "UTN";
+  host.innerHTML = `<div class="card">${providerFormHTML(null)}</div>`;
+  const imgState = setupFormImages();
+  setupAgregarCaracteristica();
+  initEditMap(null, null);
+  $("#ppGeocodeBtn").addEventListener("click", geocodeEditAddress);
+  $("#providerPropForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  const submitBtn = document.getElementById("publishBtn");
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Publicando...";
+    if (validarRequeridos(e.target)) return;
 
-  try {
-    if (!estaLogueado()) {
-      toast("Iniciá sesión para publicar propiedades");
-      openCuenta("login");
-      submitBtn.disabled = false;
-      submitBtn.textContent = "Publicar propiedad";
+    if (!editLat || !editLng) {
+      alertarZona(
+        document.getElementById("ppMapPreview"),
+        "Falta la ubicación: buscá la dirección o hacé click en el mapa para colocar el marcador"
+      );
       return;
     }
-    const res = await apiFetch(`${API_URL}/alojamientos`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        titulo,
-        tipo,
-        precio_mensual: precio,
-        barrio,
-        calle,
-        referencia,
-        habitaciones: habs,
-        banos: banos,
-        descripcion: desc,
-        latitud: publishLat,
-        longitud: publishLng,
-        wifi, amoblado, cochera, balcon, calefaccion, aire, parrilla,
-        universidad: closestUni
-      })
-    });
 
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.error || "Error del servidor");
-    }
+    const payload = {
+      proveedor_id: providerData.id,
+      titulo: $("#ppNombre").value,
+      tipo: $("#ppTipo").value,
+      precio_mensual: +$("#ppPrecio").value,
+      barrio: $("#ppBarrio").value,
+      calle: $("#ppCalle").value.trim(),
+      referencia: $("#ppReferencia").value.trim(),
+      habitaciones: +$("#ppHabs").value,
+      banos: +$("#ppBanos").value,
+      descripcion: $("#ppDesc").value,
+      latitud: editLat,
+      longitud: editLng,
+      caracteristicas: colectarCaracteristicas(),
+      universidad: $("#ppUni").value
+    };
 
-    const result = await res.json();
-    const alojId = result.id;
-
-    // Subir imágenes si hay archivos seleccionados
-    if (publishFileObjects.length > 0) {
-      const formData = new FormData();
-      for (const file of publishFileObjects) {
-        formData.append("fotos", file);
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    try {
+      const res = await apiFetch(`${API_URL}/alojamientos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Error del servidor");
       }
+      const result = await res.json().catch(() => ({}));
 
-      console.log("UPLOAD DEBUG: archivos a enviar:", publishFileObjects.length);
-      for (const f of publishFileObjects) {
-        console.log("UPLOAD DEBUG:", f.name, f.type, f.size + " bytes");
-      }
-
-      try {
-        const imgRes = await apiFetch(`${API_URL}/alojamientos/${alojId}/imagenes`, {
+      if (imgState && imgState.hasNew() && result.id) {
+        const imgRes = await apiFetch(`${API_URL}/alojamientos/${result.id}/imagenes`, {
           method: "POST",
           headers: authHeaders(),
-          body: formData
+          body: imgState.buildFormData()
         });
-
-        const imgResult = await imgRes.json().catch(() => ({}));
-        console.log("UPLOAD DEBUG: respuesta:", imgRes.status, imgResult);
-
-        if (!imgRes.ok) {
-          toast(`Propiedad publicada, pero hubo un error al subir las imágenes: ${imgResult.error || "error desconocido"}`);
-        }
-      } catch (imgErr) {
-        console.error("UPLOAD DEBUG: error de red:", imgErr);
-        toast("Propiedad publicada, pero no se pudieron subir las imágenes");
+        if (!imgRes.ok) toast("Propiedad publicada, pero hubo un error al subir las fotos");
       }
+
+      toast("¡Propiedad publicada correctamente!");
+      loadProviderDataFromAPI();
+      renderPublicarForm();
+    } catch (err) {
+      toast(`Error al publicar: ${err.message}`);
+      console.error(err);
+      submitBtn.disabled = false;
     }
-
-    toast("Propiedad publicada correctamente");
-    e.target.reset();
-    publishImages = [];
-    publishFileObjects = [];
-    publishLat = null;
-    publishLng = null;
-    publishMarker = null;
-    renderPublishPreviews();
-    const distInfo = document.getElementById("publishDistInfo");
-    if (distInfo) distInfo.style.display = "none";
-    const geocodeStatus = document.getElementById("geocodeStatus");
-    if (geocodeStatus) geocodeStatus.style.display = "none";
-    if (publishMiniMap) { publishMiniMap.remove(); publishMiniMap = null; }
-
-    // Refrescar datos desde Supabase
-    await loadData();
-    renderFeatured();
-    renderCatalog(filteredProps);
-    goTo("alquileres");
-  } catch (err) {
-    toast(`Error al publicar: ${err.message}`);
-    console.error(err);
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = "Publicar propiedad";
-  }
-});
+  });
+}
 
 /* ---------- Init ---------- */
 function initCarousel() {
@@ -1597,6 +1452,7 @@ let providerLoggedIn = false;
 let providerData = null;
 let providerListings = [];
 let providerTransportList = [];
+let providerSolicitudes = [];
 
 async function initProviderSection() {
   if (!estaLogueado()) { renderProviderGate(); return; }
@@ -1707,6 +1563,8 @@ async function loadProviderDataFromAPI() {
     if (providerData.tipo === "transportista") {
       const res = await fetch(`${API_URL}/proveedores/${providerData.id}/fletes`);
       if (res.ok) providerTransportList = await res.json();
+      const solRes = await fetch(`${API_URL}/proveedores/${providerData.id}/solicitudes`, { headers: authHeaders() });
+      if (solRes.ok) providerSolicitudes = await solRes.json();
     } else {
       const res = await fetch(`${API_URL}/proveedores/${providerData.id}/alojamientos`);
       if (res.ok) providerListings = await res.json();
@@ -1728,6 +1586,7 @@ function showProviderPanel() {
     $("#providerProperties").style.display = "none";
     $("#providerTransport").style.display = "";
     renderProviderTransport();
+    renderProviderSolicitudes();
   } else {
     $("#providerProperties").style.display = "";
     $("#providerTransport").style.display = "none";
@@ -1800,6 +1659,55 @@ function renderProviderTransport() {
   });
   g.querySelectorAll(".provider-edit-transport").forEach(b => b.addEventListener("click", () => editProviderTransport(+b.dataset.idx)));
   g.querySelectorAll(".provider-delete-transport").forEach(b => b.addEventListener("click", () => deleteProviderTransport(+b.dataset.idx)));
+}
+
+function escHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+const ESTADO_SOLICITUD = { pendiente: "#b45309", contactada: "#15803d", cerrada: "#64748b" };
+
+function renderProviderSolicitudes() {
+  const g = $("#providerSolicitudesList");
+  if (!g) return;
+  g.innerHTML = "";
+  if (!providerSolicitudes.length) {
+    $("#noSolicitudes").style.display = "";
+    g.style.display = "none";
+    return;
+  }
+  $("#noSolicitudes").style.display = "none";
+  g.style.display = "";
+  providerSolicitudes.forEach(s => {
+    const fechaTxt = s.fecha_mudanza
+      ? new Date(`${s.fecha_mudanza}T00:00:00`).toLocaleDateString("es-AR", { day: "numeric", month: "short" })
+      : "A coordinar";
+    const colorEstado = ESTADO_SOLICITUD[s.estado] || "#64748b";
+    const wa = s.telefono ? `https://wa.me/${s.telefono.replace(/[^0-9]/g, "")}` : null;
+    const div = document.createElement("article");
+    div.className = "card provider-listing-card";
+    div.style.padding = "16px";
+    div.innerHTML = `
+      <div class="prop-meta">
+        <strong>${escHtml(s.nombre_contacto)}</strong>
+        <span class="prop-tag">${s.proveedor_id ? "Directa" : "General"}</span>
+      </div>
+      <div class="prop-meta" style="margin-top:8px">
+        <span>&#128205; ${escHtml(s.origen)}</span>
+        <span>&#10145; ${escHtml(s.destino)}</span>
+      </div>
+      <div class="prop-meta" style="margin-top:8px">
+        <span>Tama&ntilde;o: ${escHtml(s.tamano) || "&mdash;"}</span>
+        <span>Fecha: ${fechaTxt}</span>
+      </div>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:12px;font-weight:600;color:${colorEstado};text-transform:uppercase">${escHtml(s.estado)}</span>
+        ${wa ? `<a class="btn btn-primary btn-sm" href="${wa}" target="_blank" rel="noopener">Contactar por WhatsApp</a>` : ""}
+      </div>
+      ${s.observaciones ? `<p class="muted" style="margin-top:10px;font-size:14px">${escHtml(s.observaciones)}</p>` : ""}
+    `;
+    g.appendChild(div);
+  });
 }
 
 async function updateProviderStats() {
@@ -2012,72 +1920,6 @@ function saveProviderData() {
   localStorage.setItem("forania_provider", JSON.stringify(providerData));
 }
 
-async function addProviderListing() {
-  openProviderModal("Nueva propiedad", providerFormHTML(null));
-  const imgState = setupFormImages();
-  setupAgregarCaracteristica();
-  initEditMap(null, null);
-  const geocodeBtn = $("#ppGeocodeBtn");
-  if (geocodeBtn) geocodeBtn.addEventListener("click", geocodeEditAddress);
-  $("#providerPropForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    if (validarRequeridos(e.target)) return;
-
-    if (!editLat || !editLng) {
-      alertarZona(
-        document.getElementById("ppMapPreview"),
-        "Falta la ubicación: buscá la dirección o hacé click en el mapa para colocar el marcador"
-      );
-      return;
-    }
-
-      const payload = {
-        proveedor_id: providerData.id,
-        titulo: $("#ppNombre").value,
-        tipo: $("#ppTipo").value,
-        precio_mensual: +$("#ppPrecio").value,
-        barrio: $("#ppBarrio").value,
-        calle: $("#ppCalle").value.trim(),
-        referencia: $("#ppReferencia").value.trim(),
-        habitaciones: +$("#ppHabs").value,
-      banos: +$("#ppBanos").value,
-      descripcion: $("#ppDesc").value,
-      latitud: editLat,
-      longitud: editLng,
-      caracteristicas: colectarCaracteristicas(),
-      universidad: $("#ppUni").value
-    };
-    try {
-      const res = await apiFetch(`${API_URL}/alojamientos`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) throw new Error("Error al crear");
-      const result = await res.json().catch(() => ({}));
-
-      if (imgState && imgState.hasNew() && result.id) {
-        const imgRes = await apiFetch(`${API_URL}/alojamientos/${result.id}/imagenes`, {
-          method: "POST",
-          headers: authHeaders(),
-          body: imgState.buildFormData()
-        });
-        if (!imgRes.ok) toast("Propiedad publicada, pero hubo un error al subir las fotos");
-      }
-
-      await loadProviderDataFromAPI();
-      renderProviderListings();
-      updateProviderStats();
-      closeProviderModal();
-      toast("Propiedad publicada correctamente");
-    } catch (err) {
-      toast("Error al publicar propiedad");
-      console.error(err);
-    }
-  });
-}
-
 async function editProviderListing(idx) {
   const p = providerListings[idx];
   openProviderModal("Editar propiedad", providerFormHTML(p));
@@ -2256,7 +2098,7 @@ async function deleteProviderTransport(idx) {
 // El botón "Cerrar sesión" del panel se quitó: el menú del usuario
 // en el header (#btnLogout) cubre desktop y móvil.
 
-$("#addNewProp").addEventListener("click", addProviderListing);
+  $("#addNewProp").addEventListener("click", () => goTo("publicar"));
 $("#addNewTransport").addEventListener("click", addProviderTransport);
 $("#providerModalClose").addEventListener("click", closeProviderModal);
 $("#providerOverlay").addEventListener("click", closeProviderModal);
