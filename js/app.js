@@ -185,6 +185,12 @@ $$("[data-nav]").forEach(el => el.addEventListener("click", (e) => {
   goTo(el.dataset.nav);
 }));
 $("#hamburger").addEventListener("click", () => document.body.classList.toggle("nav-open"));
+// Cierra el menú móvil al tocar fuera del drawer
+document.addEventListener("click", (e) => {
+  if (!document.body.classList.contains("nav-open")) return;
+  if (e.target.closest(".nav") || e.target.closest("#hamburger")) return;
+  document.body.classList.remove("nav-open");
+});
 
 /* ---------- Tarjetas ---------- */
 function propCard(p, grid) {
@@ -591,7 +597,7 @@ $("#compareBtn").addEventListener("click", () => {
     <div class="detail-body">
       <h2 style="margin-bottom:6px">Comparar propiedades</h2>
       <p class="muted" style="margin-bottom:12px">Compará hasta 3 alojamientos lado a lado.</p>
-      <table class="comp-table">
+      <div class="table-scroll"><table class="comp-table">
         ${head}
         ${row("Precio", p => `<b style="color:var(--primary)">${fmt(p.precio)}</b>`)}
         ${row("Distancia", p => `${p.dist.toFixed(1)} km · ${Math.round(p.dist * 12)} min cam · ${Math.round(p.dist * 4)} min bici · ${Math.round(p.dist * 2)} min auto`)}
@@ -600,7 +606,7 @@ $("#compareBtn").addEventListener("click", () => {
         ${row("WiFi", p => p.wifi ? '<span class="yes">Sí</span>' : '<span class="no">No</span>')}
         ${row("Amoblado", p => p.amoblado ? '<span class="yes">Sí</span>' : '<span class="no">No</span>')}
         ${row("Cochera", p => p.cochera ? '<span class="yes">Sí</span>' : '<span class="no">No</span>')}
-      </table>
+      </table></div>
       <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
         ${items.map(p => `<button class="btn btn-primary" data-view="${p.id}">Ver ${p.nombre.split(" ")[0]}</button>`).join("")}
       </div>

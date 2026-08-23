@@ -251,7 +251,6 @@ body.nav-open .hamburger span:nth-child(3){transform:translateY(-7.5px) rotate(-
 .provider-login{max-width:720px;margin:20px auto}
 .provider-welcome{display:flex;align-items:center;gap:16px;padding:20px}
 .provider-welcome-head{display:flex;align-items:center;gap:16px;width:100%}
-.provider-welcome-head .btn{margin-left:auto}
 .provider-avatar{background:linear-gradient(135deg,var(--primary),var(--primary-2))}
 .provider-section{margin:24px 0}
 .provider-section .section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
@@ -267,6 +266,8 @@ body.nav-open .hamburger span:nth-child(3){transform:translateY(-7.5px) rotate(-
 .compare-list{display:flex;gap:8px}
 
 /* ===== Tabla comparación ===== */
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.table-scroll .comp-table{min-width:540px}
 .comp-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:.92rem}
 .comp-table th,.comp-table td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:center}
 .comp-table th:first-child,.comp-table td:first-child{text-align:left;color:var(--muted);font-weight:600;background:#f9fafb}
@@ -302,7 +303,7 @@ body.nav-open .hamburger span:nth-child(3){transform:translateY(-7.5px) rotate(-
   .checks{grid-template-columns:repeat(2,1fr)}
 }
 @media(max-width:640px){
-  .nav{position:fixed;top:64px;right:0;bottom:0;width:min(300px,80vw);background:#fff;flex-direction:column;align-items:flex-start;padding:24px;gap:16px;box-shadow:-10px 0 30px rgba(0,0,0,.12);transform:translateX(100%);transition:.3s;z-index:90}
+  .nav{position:fixed;top:64px;right:0;bottom:0;width:min(300px,80vw);background:#fff;flex-direction:column;align-items:flex-start;padding:24px 24px calc(24px + env(safe-area-inset-bottom));gap:16px;box-shadow:-10px 0 30px rgba(0,0,0,.12);transform:translateX(100%);transition:.3s;z-index:90;overflow-y:auto}
   body.nav-open .nav{transform:none}
   .nav-mobile-extra{display:flex;flex-direction:column;gap:10px;width:100%;margin-top:10px}
   .header-actions .btn-primary{display:none}
@@ -326,6 +327,26 @@ body.nav-open .hamburger span:nth-child(3){transform:translateY(-7.5px) rotate(-
   .chatbot-container{max-height:480px}
   .chatbot-messages{min-height:240px;max-height:300px}
   .checks{grid-template-columns:1fr 1fr}
+  #leafletMap{height:280px}
+  input,select,textarea{font-size:16px}
+  body.nav-open::after{content:"";position:fixed;top:64px;left:0;right:0;bottom:0;background:rgba(15,10,30,.45);z-index:85}
+  /* El backdrop-filter del header crea un containing block que rompe el drawer fijo: se desactiva en movil */
+  .header{backdrop-filter:none;background:#fff}
+  body.nav-open{overflow:hidden}
+  .detail-body{padding:18px 16px 24px}
+  /* Modales como pantalla completa (sheet de app) en movil */
+  .modal,.modal-lg{top:0;left:0;width:100%;max-height:none;border-radius:0;transform:translateY(10px)}
+  .modal{height:100vh;height:100dvh}
+  .modal.show{transform:none}
+}
+
+/* Pantallas muy angostas: blindaje del header */
+@media(max-width:380px){
+  .logo{font-size:1.15rem}
+  .logo img{height:36px}
+  .header-actions{gap:6px}
+  .user-btn{padding-right:8px}
+  .user-btn #userName{display:inline-block;max-width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
 }
 
 /* ===== Publicar — mini-mapa ===== */
