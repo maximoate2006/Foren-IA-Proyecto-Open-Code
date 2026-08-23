@@ -4,7 +4,7 @@
 /* ---------- Datos ---------- */
 const bg = (img) => img ? `background:${img}` : "background:#a78bfa";
 
-const API_URL = "http://localhost:3001/api";
+const API_URL = "/api";
 let PROPERTIES = [];
 let FLETES = [];
 let REFS = {};
