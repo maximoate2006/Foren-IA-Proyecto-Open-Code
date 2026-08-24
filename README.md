@@ -406,6 +406,6 @@ Más que una página de alquileres, ForanIA propone convertirse en una plataform
 
 **Ubicación inicial:** La Rioja, Argentina
 
-**Estado:** En desarrollo
+**Estado:** Terminado
 
 Ultima edición: 17/08/2026
